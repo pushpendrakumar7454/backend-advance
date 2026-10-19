@@ -1,5 +1,5 @@
 import { decode } from "jsonwebtoken";
-import userModel from "../../../../BasicEcomraseProjectWithFullIntegration/backend/src/modules/auth.module.js";
+
 import authModel from "../modules/auth.module.js";
 import {
   generateAccessToken,
