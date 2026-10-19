@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
-
 import ProductHero from "../components/ProductHero";
 import ProductCard from "../components/ProductCard";
-
 import apiInstance from "../../../config/apiInstance";
 
 const HomePage = () => {
