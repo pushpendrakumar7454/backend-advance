@@ -1,7 +1,7 @@
 
 import React from "react";
 
-const HomeSections = () => {
+const HomeSection = () => {
   return (
     <div className="bg-white">
 
@@ -249,4 +249,4 @@ const HomeSections = () => {
   );
 };
 
-export default HomeSections;
+export default HomeSection;
