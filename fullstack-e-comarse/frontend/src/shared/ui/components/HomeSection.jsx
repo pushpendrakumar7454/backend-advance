@@ -12,7 +12,7 @@ const HomeSection = () => {
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
-                Shop by Category
+                Hot Deals
               </h2>
               <p className="mt-1 text-sm text-gray-500">
                 Explore our top categories and find what you love
@@ -125,7 +125,7 @@ const HomeSection = () => {
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
-                Trending Products
+               Must-Have Essentials
               </h2>
               <p className="mt-1 text-sm text-gray-500">
                 Top picks loved by our customers
