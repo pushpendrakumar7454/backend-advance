@@ -1,7 +1,38 @@
 
 import React from "react";
+import { useState } from "react";
+import apiInstance from "../../../config/apiInstance";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 
 const ShopByCategory = () => {
+   
+ const [products, setProducts] = useState([]);
+
+  const getData = async () => {
+    try {
+      const res = await apiInstance.get("/products/find");
+
+      console.log(res.data.data);
+      setProducts(res.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+const navigate=useNavigate()
+
+
+  let shoesProduct=products.filter((item)=>{
+    return item.category==="shoes"
+
+  })
+
+
   return (
     <section className="bg-white px-4 py-8 text-gray-800 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-7xl">
@@ -32,7 +63,9 @@ const ShopByCategory = () => {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:gap-4">
 
           {/* Mobiles */}
-          <div className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-3 transition duration-300 hover:-translate-y-1 hover:border-orange-300 hover:shadow-md">
+          <div 
+           onClick={() => navigate("/user-header/category/mobiles")}
+          className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-3 transition duration-300 hover:-translate-y-1 hover:border-orange-300 hover:shadow-md">
             <div className="flex h-28 items-center justify-center overflow-hidden rounded-lg bg-gray-50 sm:h-32">
               <img
                 src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500"
@@ -55,7 +88,8 @@ const ShopByCategory = () => {
 
           {/* Laptops */}
           <div className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-3 transition duration-300 hover:-translate-y-1 hover:border-orange-300 hover:shadow-md">
-            <div className="flex h-28 items-center justify-center overflow-hidden rounded-lg bg-gray-50 sm:h-32">
+            <div 
+            className="flex h-28 items-center justify-center overflow-hidden rounded-lg bg-gray-50 sm:h-32">
               <img
                 src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500"
                 alt="Laptops"
@@ -121,7 +155,9 @@ const ShopByCategory = () => {
 
           {/* Footwear */}
           <div className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-3 transition duration-300 hover:-translate-y-1 hover:border-orange-300 hover:shadow-md">
-            <div className="flex h-28 items-center justify-center overflow-hidden rounded-lg bg-gray-50 sm:h-32">
+            <div 
+             onClick={() => navigate("/user-header/category/shoes")}
+            className="flex h-28 items-center justify-center overflow-hidden rounded-lg bg-gray-50 sm:h-32">
               <img
                 src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500"
                 alt="Footwear"
