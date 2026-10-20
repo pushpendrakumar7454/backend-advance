@@ -18,6 +18,9 @@ const HomePage = () => {
     }
   };
 
+
+  const sortProducts=[...products].slice(0,10)
+
   useEffect(() => {
     getData();
   }, []);
@@ -62,7 +65,7 @@ const HomePage = () => {
                   </p>
                 </div>
 
-                <h1 className="text-2xl font-black tracking-tight text-[#101827] sm:text-3xl lg:text-4xl">
+                <h1 className="text-xl font-semibold tracking-tight text-[#101827] sm:text-3xl lg:text-4xl">
                   Featured Products
                 </h1>
 
@@ -83,7 +86,7 @@ const HomePage = () => {
 
             {/* PRODUCT CARDS */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {products?.map((product) => (
+              {sortProducts?.map((product) => (
                 <ProductCard
                   key={product._id}
                   product={product}
