@@ -234,28 +234,7 @@ export default function CategoryProducts() {
                       {item.title}
                     </h3>
 
-                    <div className="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-3">
-                      <span className="text-[10px] font-medium text-gray-400">
-                        View item
-                      </span>
-
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-500 transition-all duration-300 group-hover:bg-orange-500 group-hover:text-white">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M7 17 17 7" />
-                          <path d="M7 7h10v10" />
-                        </svg>
-                      </span>
-                    </div>
+                   
                   </div>
                 </article>
               ))}
