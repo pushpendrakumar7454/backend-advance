@@ -93,7 +93,7 @@ const UserHeader = () => {
                 Home
               </NavLink>
 
-              <NavLink to="/products" className={navLinkStyle}>
+              <NavLink to="/user-header/all-products" className={navLinkStyle}>
                 Shop
               </NavLink>
 

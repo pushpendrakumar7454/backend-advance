@@ -15,6 +15,7 @@ import ProductDetail from "../shared/ui/components/ProductDetail";
 import Cart from "../shared/ui/components/Cart";
 import Main from "../shared/ui/pages/Main";
 import CategoryProducts from "../shared/ui/pages/CategoryProducts";
+import AllProducts from "../shared/ui/components/AllProducts";
 
 const AppRout = () => {
   const dispatch = useDispatch();
@@ -55,6 +56,9 @@ const AppRout = () => {
             },{
               path:"category/:category",
               element: <CategoryProducts/>
+            },{
+              path:"all-products",
+              element:<AllProducts/>
             }
           ],
         },
