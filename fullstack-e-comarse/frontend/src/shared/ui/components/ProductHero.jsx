@@ -261,12 +261,12 @@ const ProductHero = () => {
               {product.badge}
             </div>
 
-            <h1 className="mt-5 text-[36px] font-extrabold leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-[44px] lg:text-[46px] xl:text-[56px]">
+            <h1 className="mt-5 text-[36px] font-extrabold leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-[44px] lg:text-[46px] xl:text-[50px] lg:font-semibold">
               <span className="block">{product.brand}</span>
 
-              <span className="mt-1 block text-[28px] leading-tight tracking-[-0.035em] sm:text-[34px] lg:text-[35px] xl:text-[42px]">
+              <span className="mt-1 block text-[28px] leading-tight tracking-[-0.035em] sm:text-[34px] lg:text-[35px] xl:text-[30px] lg:font-semibold">
                 {product.title}{" "}
-                <span className="text-orange-500">
+                <span className="text-orange-500 text-4xl font-semibold">
                   {product.accent}
                 </span>
               </span>
