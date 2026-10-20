@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-
 import {
   FiSearch,
   FiShoppingBag,
@@ -11,6 +10,7 @@ import {
   FiX,
   FiChevronDown,
   FiLogOut,
+  FiHeadphones,
 } from "react-icons/fi";
 import { logOutUser } from "../../../features/auth/api/useApi";
 import {
@@ -36,7 +36,6 @@ const UserHeader = () => {
   // User name
   const userName = users?.name || "User";
 
-
   // Logout
   const handleLogout = async () => {
     try {
@@ -52,7 +51,6 @@ const UserHeader = () => {
   return (
     <header className="sticky top-0 z-50">
       {/* ================= TOP OFFER BAR ================= */}
-
       <div className="bg-[#101828] text-white text-center py-2 px-4">
         <p className="text-[11px] sm:text-xs tracking-wide">
           ✦ Free shipping on orders above ₹999
@@ -64,12 +62,10 @@ const UserHeader = () => {
       </div>
 
       {/* ================= MAIN HEADER ================= */}
-
       <div className="bg-white/95 backdrop-blur-xl border-b border-[#eaecf0]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-[76px] flex items-center justify-between gap-5">
             {/* ================= LOGO ================= */}
-
             <NavLink to="/" className="flex items-center gap-3 shrink-0">
               <div className="w-11 h-11 rounded-xl bg-[#101828] flex items-center justify-center shadow-lg shadow-slate-900/10">
                 <span className="text-xl font-black text-orange-400">N</span>
@@ -79,7 +75,6 @@ const UserHeader = () => {
                 <h1 className="text-lg font-black tracking-[0.16em] text-[#101828] leading-none">
                   NEXORA
                 </h1>
-
                 <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400 mt-1.5">
                   Premium Store
                 </p>
@@ -87,7 +82,6 @@ const UserHeader = () => {
             </NavLink>
 
             {/* ================= DESKTOP NAV ================= */}
-
             <nav className="hidden lg:flex items-center gap-7">
               <NavLink to="/user-header" end className={navLinkStyle}>
                 Home
@@ -98,7 +92,6 @@ const UserHeader = () => {
               </NavLink>
 
               {/* CATEGORY */}
-
               <div className="relative">
                 <button
                   type="button"
@@ -115,6 +108,7 @@ const UserHeader = () => {
                 {categoryOpen && (
                   <div className="absolute top-10 left-0 w-52 bg-white border border-[#eaecf0] rounded-2xl shadow-[0_20px_50px_rgba(16,24,40,0.12)] p-2">
                     <button
+                      type="button"
                       onClick={() => {
                         navigate("/products");
                         setCategoryOpen(false);
@@ -124,6 +118,7 @@ const UserHeader = () => {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => {
                         navigate("/products?category=men");
                         setCategoryOpen(false);
@@ -133,6 +128,7 @@ const UserHeader = () => {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => {
                         navigate("/products?category=women");
                         setCategoryOpen(false);
@@ -142,6 +138,7 @@ const UserHeader = () => {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => {
                         navigate("/products?category=electronics");
                         setCategoryOpen(false);
@@ -159,11 +156,9 @@ const UserHeader = () => {
             </nav>
 
             {/* ================= SEARCH ================= */}
-
             <div className="hidden md:flex flex-1 max-w-sm">
               <div className="relative w-full">
                 <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-
                 <input
                   type="text"
                   placeholder="Search products..."
@@ -173,37 +168,43 @@ const UserHeader = () => {
             </div>
 
             {/* ================= ACTIONS ================= */}
-
             <div className="flex items-center gap-1 sm:gap-2">
               {/* SEARCH MOBILE */}
-
               <button
                 type="button"
+                aria-label="Search products"
                 className="md:hidden w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:bg-orange-50 hover:text-orange-500 transition">
                 <FiSearch size={19} />
               </button>
 
               {/* WISHLIST */}
-
               <button
                 type="button"
                 onClick={() => navigate("/wishlist")}
+                aria-label="Wishlist"
                 className="hidden sm:flex relative w-10 h-10 rounded-xl items-center justify-center text-slate-600 hover:bg-orange-50 hover:text-orange-500 transition">
                 <FiHeart size={19} />
-
                 <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] flex items-center justify-center font-bold">
                   0
                 </span>
               </button>
 
-              {/* CART */}
+              {/* HELP */}
+              <button
+                onClick={() => navigate("/user-header/help-chat")}
+                type="button"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-orange-600 hover:bg-orange-50">
+                <FiHeadphones size={22} />
+                <span>Help</span>
+              </button>
 
+              {/* CART */}
               <button
                 type="button"
                 onClick={() => navigate("/user-header/cart")}
+                aria-label="Shopping cart"
                 className="relative w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:bg-orange-50 hover:text-orange-500 transition">
                 <FiShoppingBag size={20} />
-
                 <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] flex items-center justify-center font-bold">
                   0
                 </span>
@@ -224,16 +225,17 @@ const UserHeader = () => {
                   type="button"
                   onClick={handleLogout}
                   title="Logout"
+                  aria-label="Logout"
                   className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-500 transition">
                   <FiLogOut size={18} />
                 </button>
               </div>
 
               {/* MOBILE MENU */}
-
               <button
                 type="button"
                 onClick={() => setMenuOpen(!menuOpen)}
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
                 className="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center text-slate-700 hover:bg-orange-50 hover:text-orange-500 transition">
                 {menuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
               </button>
@@ -243,15 +245,12 @@ const UserHeader = () => {
       </div>
 
       {/* ================= MOBILE MENU ================= */}
-
       {menuOpen && (
         <div className="lg:hidden bg-white border-b border-[#eaecf0] shadow-[0_15px_40px_rgba(16,24,40,0.08)]">
           <div className="max-w-7xl mx-auto px-4 py-5 space-y-2">
             {/* MOBILE SEARCH */}
-
             <div className="relative mb-4">
               <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-
               <input
                 type="text"
                 placeholder="Search products..."
@@ -298,20 +297,24 @@ const UserHeader = () => {
               }>
               About
             </NavLink>
+               <button
+                onClick={() => navigate("/user-header/help-chat")}
+                type="button"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-orange-600 hover:bg-orange-50">
+                <FiHeadphones size={22} />
+                <span>Help</span>
+              </button>
 
             {/* MOBILE USER NAME */}
-
             <div className="mt-3 p-4 rounded-2xl bg-slate-50 border border-[#eaecf0]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#101828] flex items-center justify-center text-white">
                   <FiUser size={18} />
                 </div>
-
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-slate-400">
                     Welcome
                   </p>
-
                   <p className="text-sm font-bold text-[#101828]">{userName}</p>
                 </div>
               </div>
@@ -319,6 +322,7 @@ const UserHeader = () => {
 
             <div className="grid grid-cols-2 gap-3 pt-3">
               <button
+                type="button"
                 onClick={() => {
                   navigate("/wishlist");
                   setMenuOpen(false);
@@ -329,6 +333,7 @@ const UserHeader = () => {
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   navigate("/profile");
                   setMenuOpen(false);
@@ -340,8 +345,8 @@ const UserHeader = () => {
             </div>
 
             {/* MOBILE LOGOUT */}
-
             <button
+              type="button"
               onClick={() => {
                 handleLogout();
                 setMenuOpen(false);
