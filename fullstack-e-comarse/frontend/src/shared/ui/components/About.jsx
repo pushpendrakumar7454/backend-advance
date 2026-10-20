@@ -77,9 +77,9 @@ export default function About() {
               </span>
             </div>
 
-            <h1 className="mt-5 max-w-xl text-3xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-4xl md:text-5xl">
+            <h1 className="mt-5 max-w-xl text-3xl font-semibold leading-tight tracking-tight text-gray-900 sm:text-4xl md:text-5xl">
               Shopping that feels
-              <span className="block text-orange-500">
+              <span className="block lg:text-3xl text-orange-500">
                 a little more personal.
               </span>
             </h1>

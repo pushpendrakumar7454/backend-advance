@@ -10,6 +10,7 @@ import {
   FiMapPin,
   FiPhone,
   FiArrowRight,
+  FiCheck 
 } from "react-icons/fi";
 
 export default function Footer() {
