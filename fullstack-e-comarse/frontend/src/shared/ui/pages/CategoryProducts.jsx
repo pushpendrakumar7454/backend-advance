@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import apiInstance from "../../../config/apiInstance";
 
 export default function CategoryProducts() {
@@ -29,6 +29,8 @@ export default function CategoryProducts() {
 
     getData();
   }, []);
+
+  const navigate=useNavigate()
 
   const filteredProducts = products.filter((item) => {
     return (
@@ -163,10 +165,10 @@ export default function CategoryProducts() {
         ) : error ? (
           <div className="rounded-2xl border border-red-100 bg-white px-5 py-14 text-center">
             <p className="text-sm font-semibold text-gray-800">
-              Products load nahi hue
+              Products is not loading
             </p>
             <p className="mt-2 text-xs text-gray-500">
-              API connection check karke page refresh karo.
+             check the api connection and refresh the page
             </p>
           </div>
         ) : sortedProducts.length === 0 ? (
@@ -178,7 +180,7 @@ export default function CategoryProducts() {
               No products found
             </h2>
             <p className="mt-2 text-xs text-gray-500">
-              Is category mein abhi products available nahi hain.
+            product is not availble this category
             </p>
           </div>
         ) : (
@@ -205,7 +207,9 @@ export default function CategoryProducts() {
                   className="group overflow-hidden rounded-2xl border border-gray-100 bg-white p-2.5 transition-all duration-300 hover:-translate-y-1 hover:border-orange-200 hover:shadow-[0_10px_30px_-12px_rgba(249,115,22,0.22)] sm:p-3"
                 >
                   {/* Image */}
-                  <div className="relative flex h-36 items-center justify-center overflow-hidden rounded-xl bg-gray-50 p-3 sm:h-48 sm:p-5">
+                  <div 
+                  onClick={()=>navigate(`/user-header/product-detail/${item._id}`)}
+                  className="relative cursor-pointer flex h-36 items-center justify-center overflow-hidden rounded-xl bg-gray-50 p-3 sm:h-48 sm:p-5">
                     <span className="absolute left-2 top-2 z-10 rounded-md bg-white px-2 py-1 text-[9px] font-semibold text-orange-600 shadow-sm">
                       PICK {index + 1}
                     </span>
