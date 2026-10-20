@@ -4,6 +4,7 @@ import authRouter from '../router/authRouter.js'
 import productRouter from '../router/product.route.js'
 import cartRouter from '../router/cart.router.js'
 import cors from 'cors'
+import passport from '../config/passport.js'
 
 const app = express()
 
@@ -14,6 +15,7 @@ const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
+app.use(passport.initialize())
 
 app.use("/api/auth", authRouter)
 app.use("/api/products", productRouter)
