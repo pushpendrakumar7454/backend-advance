@@ -89,7 +89,7 @@ const UserHeader = () => {
             {/* ================= DESKTOP NAV ================= */}
 
             <nav className="hidden lg:flex items-center gap-7">
-              <NavLink to="/" className={navLinkStyle}>
+              <NavLink to="/user-header" className={navLinkStyle}>
                 Home
               </NavLink>
 

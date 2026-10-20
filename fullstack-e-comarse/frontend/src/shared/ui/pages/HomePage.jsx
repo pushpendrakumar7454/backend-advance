@@ -19,12 +19,12 @@ const HomePage = () => {
   };
 
 
-  const sortProducts=[...products].slice(0,10)
-
+  
   useEffect(() => {
     getData();
   }, []);
-
+  
+  const sortProducts=[...products].slice(0,10)
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
       {/* BACKGROUND */}
