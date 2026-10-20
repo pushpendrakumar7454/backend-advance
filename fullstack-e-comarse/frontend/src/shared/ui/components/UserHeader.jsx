@@ -153,7 +153,7 @@ const UserHeader = () => {
                 )}
               </div>
 
-              <NavLink to="/about" className={navLinkStyle}>
+              <NavLink to="/user-header/about" className={navLinkStyle}>
                 About
               </NavLink>
             </nav>
@@ -260,7 +260,8 @@ const UserHeader = () => {
             </div>
 
             <NavLink
-              to="/"
+              to="/user-header"
+              end
               onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
                 `block px-4 py-3 rounded-xl text-sm font-semibold ${
@@ -273,7 +274,7 @@ const UserHeader = () => {
             </NavLink>
 
             <NavLink
-              to="/products"
+              to="/user-header/all-products"
               onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
                 `block px-4 py-3 rounded-xl text-sm font-semibold ${
@@ -286,7 +287,7 @@ const UserHeader = () => {
             </NavLink>
 
             <NavLink
-              to="/about"
+              to="/user-header/about"
               onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
                 `block px-4 py-3 rounded-xl text-sm font-semibold ${
