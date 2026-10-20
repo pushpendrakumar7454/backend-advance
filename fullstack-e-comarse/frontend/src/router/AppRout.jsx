@@ -18,6 +18,7 @@ import CategoryProducts from "../shared/ui/pages/CategoryProducts";
 import AllProducts from "../shared/ui/components/AllProducts";
 import About from "../shared/ui/components/About";
 import GoogleCallback from "../shared/ui/pages/GoogleCallback";
+import ChatPage from "../shared/ui/pages/ChatPage";
 
 const AppRout = () => {
   const dispatch = useDispatch();
@@ -64,6 +65,9 @@ const AppRout = () => {
             },{
               path:"about",
               element:<About/>
+            },{
+              path:"help-chat",
+              element:<ChatPage/>
             }
           ],
         },
