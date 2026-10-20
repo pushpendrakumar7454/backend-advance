@@ -17,6 +17,7 @@ import Main from "../shared/ui/pages/Main";
 import CategoryProducts from "../shared/ui/pages/CategoryProducts";
 import AllProducts from "../shared/ui/components/AllProducts";
 import About from "../shared/ui/components/About";
+import GoogleCallback from "../shared/ui/pages/GoogleCallback";
 
 const AppRout = () => {
   const dispatch = useDispatch();
@@ -93,7 +94,10 @@ const AppRout = () => {
         {
           path: "/register",
           element: <Register />,
-        },
+        },{
+          path:"/google/callback",
+          element:<GoogleCallback/>
+        }
       ],
     },
   ]);

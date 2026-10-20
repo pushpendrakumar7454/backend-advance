@@ -16,19 +16,17 @@ passport.use(
           googleId: profile.id,
         });
 
-        if (!user) {
-          const email = profile.emails?.[0]?.value;
+        const email = profile.emails?.[0]?.value;
 
-          if (email) {
-            user = await authModel.findOne({ email: email });
-          }
+        if (!user && email) {
+          user = await authModel.findOne({ email });
         }
 
         if (!user) {
           user = await authModel.create({
             name: profile.displayName,
             googleId: profile.id,
-            email: profile.emails?.[0]?.value,
+            email,
           });
         } else if (!user.googleId) {
           user.googleId = profile.id;
