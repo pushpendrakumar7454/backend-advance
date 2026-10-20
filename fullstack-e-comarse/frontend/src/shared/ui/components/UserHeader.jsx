@@ -89,7 +89,7 @@ const UserHeader = () => {
             {/* ================= DESKTOP NAV ================= */}
 
             <nav className="hidden lg:flex items-center gap-7">
-              <NavLink to="/user-header" className={navLinkStyle}>
+              <NavLink to="/user-header" end className={navLinkStyle}>
                 Home
               </NavLink>
 
@@ -215,7 +215,7 @@ const UserHeader = () => {
                   <p className="text-[10px] text-slate-400 uppercase tracking-wider">
                     Welcome
                   </p>
-                  <p className="text-sm font-bold text-[#101828] max-w-[90px] truncate">
+                  <p className="text-sm font-bold capitalize text-[#101828] max-w-[90px] truncate">
                     {userName}
                   </p>
                 </div>
