@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { registerUser } from "../../api/useApi";
 import { useDispatch } from "react-redux";
 import { addUser, setAccessToken } from "../../state/authSlice";
-import { useNavigate } from "react-router";
+import { href, useNavigate } from "react-router";
 
 const Register = () => {
   const {
@@ -27,6 +27,10 @@ const Register = () => {
       console.log(error);
     }
   };
+
+  const handleGoogleLogin=()=>{
+    window.location.href='http://localhost:3000/api/auth/google'
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f3ef] flex items-center justify-center px-4 py-8 relative overflow-hidden">
@@ -438,13 +442,43 @@ const Register = () => {
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-400/10 to-orange-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
 
-                <span className="relative z-10 flex items-center justify-center gap-2">
+                <span className="relative cursor-pointer active:scale-95  z-10 font-semibold lg:text-sm flex items-center justify-center gap-2">
                   Create My Account
 
                   <span className="text-lg transition-transform duration-300 group-hover:translate-x-1 text-orange-400">
                     →
                   </span>
                 </span>
+              </button>
+
+
+                <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full cursor-pointer active:scale-95 flex items-center justify-center gap-3 py-3.5 rounded-2xl border border-[#e4e7ec] bg-white text-[#101828] font-semibold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 active:scale-95">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 48 48">
+                  <path
+                    fill="#EA4335"
+                    d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 3.16 13.22l7.98 6.19C13.03 13.72 18.05 9.5 24 9.5z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.72 7.18l7.3 5.66c4.26-3.93 6.46-9.72 6.46-17.31z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M10.14 28.59A14.4 14.4 0 0 1 9.36 24c0-1.59.27-3.12.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.58 10.78l7.56-6.19z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M24 48c6.48 0 11.93-2.13 15.9-5.79l-7.3-5.66c-2.03 1.36-4.63 2.16-8.6 2.16-5.95 0-10.97-4.22-12.86-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48z"
+                  />
+                </svg>
+                Continue with Google
               </button>
             </form>
 
