@@ -10,6 +10,7 @@ import { UserModel } from "../models/user.model.js";
  * @param {RegisterInput} input - Registration data.
  * @returns {Promise<UserDocument>} The created user document.
  */
+
 export const createUser = async (input) => {
   const user = await UserModel.create(input);
   return /** @type {UserDocument} */ (/** @type {unknown} */ (user));
