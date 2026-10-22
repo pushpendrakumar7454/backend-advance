@@ -31,6 +31,7 @@ userSchema.pre("save", async function hashPassword() {
  * @param {string} candidate - Plain-text password.
  * @returns {Promise<boolean>} Whether the password matches.
  */
+
 userSchema.methods.comparePassword = async function comparePassword(candidate) {
   if (!this.password) return false;
   return bcrypt.compare(candidate, this.password);
