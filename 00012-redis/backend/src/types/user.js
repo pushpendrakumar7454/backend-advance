@@ -42,10 +42,12 @@
  */
 
 /**
+ * 
  * @typedef {Object} TokenPair
  * @property {string} accessToken
  * @property {string} refreshToken
  */
+
 
 /**
  * @typedef {Object} TokenPayload
