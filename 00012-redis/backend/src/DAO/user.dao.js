@@ -31,6 +31,7 @@ export const findUserByEmail = async (email) => {
  * @param {string} id - User id.
  * @returns {Promise<UserDocument | null>} The user or null.
  */
+
 export const findUserById = async (id) => {
   const user = await UserModel.findById(id);
   return /** @type {UserDocument | null} */ (/** @type {unknown} */ (user));
