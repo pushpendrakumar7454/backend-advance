@@ -156,6 +156,7 @@ export const logout = asyncHandler(async (req, res) => {
   const token = req.cookies?.[REFRESH_COOKIE];
 
   if (typeof token === "string" && token) {
+    
     try {
       const payload = verifyRefreshToken(token);
       const user = await findUserByIdWithRefreshToken(payload.id);
