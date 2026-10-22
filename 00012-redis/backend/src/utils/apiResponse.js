@@ -7,6 +7,7 @@
  * @param {T} [data] - Payload; defaults to `{}`.
  * @returns {import("express").Response} The response.
  */
+
 export const sendSuccess = (res, statusCode, message, data) => {
   /** @type {import("../types/api.js").ApiSuccess<T | {}>} */
   const body = { success: true, message, data: data === undefined ? {} : data };
