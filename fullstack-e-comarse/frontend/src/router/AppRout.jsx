@@ -19,6 +19,7 @@ import AllProducts from "../shared/ui/components/AllProducts";
 import About from "../shared/ui/components/About";
 import GoogleCallback from "../shared/ui/pages/GoogleCallback";
 import ChatPage from "../shared/ui/pages/ChatPage";
+import Order from "../shared/ui/components/Order";
 
 const AppRout = () => {
   const dispatch = useDispatch();
@@ -68,6 +69,9 @@ const AppRout = () => {
             },{
               path:"help-chat",
               element:<ChatPage/>
+            },{
+              path:"order",
+              element:<Order/>
             }
           ],
         },
