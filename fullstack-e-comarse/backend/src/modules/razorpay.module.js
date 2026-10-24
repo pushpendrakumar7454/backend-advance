@@ -1,6 +1,6 @@
 import  mongoose from 'mongoose'
 
-const razorpaySchema=new mongoose({
+const razorpaySchema=new mongoose.Schema({
     orderId:{
         type:String,
         required:true
