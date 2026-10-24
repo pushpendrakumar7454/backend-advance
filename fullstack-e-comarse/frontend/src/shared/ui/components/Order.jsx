@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import apiInstance from "../../../config/apiInstance";
 
@@ -16,10 +17,9 @@ const Order = () => {
 
       const response = await apiInstance.get("/payment/my-orders");
 
-      setOrders(response.data.orders || []);
+      setOrders(response.data?.orders || []);
     } catch (error) {
       console.error("Fetch orders error:", error);
-
       setError(
         error.response?.data?.message || "Unable to load your orders."
       );
@@ -59,16 +59,32 @@ const Order = () => {
     const searchText = search.trim().toLowerCase();
 
     return orders.filter((order) => {
-      const product = order.product;
       const status = String(order.status || "").toLowerCase();
 
       const matchesFilter =
         activeFilter === "all" || status === activeFilter;
 
+      let matchesProduct = false;
+
+      if (Array.isArray(order.products)) {
+        for (const item of order.products) {
+          const product = item?.product;
+
+          if (
+            String(product?.title || "")
+              .toLowerCase()
+              .includes(searchText)
+          ) {
+            matchesProduct = true;
+            break;
+          }
+        }
+      }
+
       const matchesSearch =
         String(order.orderId || "").toLowerCase().includes(searchText) ||
         String(order.paymentId || "").toLowerCase().includes(searchText) ||
-        String(product?.title || "").toLowerCase().includes(searchText);
+        matchesProduct;
 
       return matchesFilter && matchesSearch;
     });
@@ -131,10 +147,26 @@ const Order = () => {
     };
   };
 
+  const getOrderProducts = (order) => {
+    if (!Array.isArray(order?.products)) {
+      return [];
+    }
+
+    return order.products.filter((item) => item?.product);
+  };
+
+  const getProductImage = (product) => {
+    if (Array.isArray(product?.images)) {
+      return product.images[0] || "";
+    }
+
+    return "";
+  };
+
   return (
     <div className="min-h-screen bg-[#fafaf9] text-slate-800">
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        {/* Top heading */}
+        {/* Page heading */}
         <div className="mb-7 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div>
             <div className="mb-2 flex items-center gap-2">
@@ -164,7 +196,7 @@ const Order = () => {
           </button>
         </div>
 
-        {/* Orange hero banner */}
+        {/* Hero banner */}
         <section className="relative mb-6 overflow-hidden rounded-2xl border border-orange-100 bg-gradient-to-r from-orange-50 via-white to-orange-100/80 p-5 sm:p-7 lg:p-8">
           <div className="pointer-events-none absolute -right-8 -top-16 h-52 w-52 rounded-full border-[24px] border-orange-200/30" />
           <div className="pointer-events-none absolute -bottom-16 right-24 h-36 w-36 rounded-full bg-orange-200/30 blur-2xl" />
@@ -195,14 +227,9 @@ const Order = () => {
         {/* Summary cards */}
         <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-medium text-slate-500 sm:text-sm">
-                Total orders
-              </p>
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-lg text-orange-600">
-                ▤
-              </span>
-            </div>
+            <p className="text-xs font-medium text-slate-500 sm:text-sm">
+              Total orders
+            </p>
             <p className="mt-4 text-2xl font-bold text-slate-900">
               {orderCounts.all}
             </p>
@@ -210,14 +237,9 @@ const Order = () => {
           </div>
 
           <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-medium text-slate-500 sm:text-sm">
-                Completed
-              </p>
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-lg text-emerald-600">
-                ✓
-              </span>
-            </div>
+            <p className="text-xs font-medium text-slate-500 sm:text-sm">
+              Completed
+            </p>
             <p className="mt-4 text-2xl font-bold text-emerald-600">
               {orderCounts.completed}
             </p>
@@ -225,14 +247,9 @@ const Order = () => {
           </div>
 
           <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-medium text-slate-500 sm:text-sm">
-                Pending
-              </p>
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-lg text-orange-600">
-                ◷
-              </span>
-            </div>
+            <p className="text-xs font-medium text-slate-500 sm:text-sm">
+              Pending
+            </p>
             <p className="mt-4 text-2xl font-bold text-orange-600">
               {orderCounts.pending}
             </p>
@@ -240,14 +257,9 @@ const Order = () => {
           </div>
 
           <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-medium text-slate-500 sm:text-sm">
-                Failed
-              </p>
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-lg text-red-600">
-                !
-              </span>
-            </div>
+            <p className="text-xs font-medium text-slate-500 sm:text-sm">
+              Failed
+            </p>
             <p className="mt-4 text-2xl font-bold text-red-600">
               {orderCounts.failed}
             </p>
@@ -261,21 +273,9 @@ const Order = () => {
             <div className="flex flex-wrap gap-2">
               {[
                 { label: "All orders", value: "all", count: orderCounts.all },
-                {
-                  label: "Completed",
-                  value: "completed",
-                  count: orderCounts.completed,
-                },
-                {
-                  label: "Pending",
-                  value: "pending",
-                  count: orderCounts.pending,
-                },
-                {
-                  label: "Failed",
-                  value: "failed",
-                  count: orderCounts.failed,
-                },
+                { label: "Completed", value: "completed", count: orderCounts.completed },
+                { label: "Pending", value: "pending", count: orderCounts.pending },
+                { label: "Failed", value: "failed", count: orderCounts.failed },
               ].map((filter) => (
                 <button
                   key={filter.value}
@@ -395,13 +395,8 @@ const Order = () => {
           ) : (
             <div className="space-y-4">
               {filteredOrders.map((order) => {
-                const product = order.product;
                 const statusStyle = getStatusStyle(order.status);
-
-                const productImage =
-                  Array.isArray(product?.images) && product.images.length > 0
-                    ? product.images[0]
-                    : "";
+                const products = getOrderProducts(order);
 
                 return (
                   <article
@@ -409,102 +404,144 @@ const Order = () => {
                     className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-100/50"
                   >
                     <div className="p-4 sm:p-5 lg:p-6">
-                      <div className="flex flex-col gap-5 sm:flex-row">
-                        {/* Product image */}
-                        <div className="relative flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-slate-50 sm:h-32 sm:w-32">
-                          {productImage ? (
-                            <img
-                              src={productImage}
-                              alt={product?.title || "Product"}
-                              loading="lazy"
-                              className="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105"
-                            />
-                          ) : (
-                            <div className="flex flex-col items-center gap-2 text-slate-400">
-                              <span className="text-3xl">▧</span>
-                              <span className="text-xs">No image</span>
-                            </div>
-                          )}
-
-                          <span className="absolute left-2 top-2 rounded-md bg-orange-500 px-2 py-1 text-[10px] font-bold text-white shadow-sm">
-                            ORDER
-                          </span>
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs text-slate-400">
+                            Order placed on {formatDate(order.createdAt)}
+                          </p>
+                          <p className="mt-1 break-all text-xs font-medium text-slate-600">
+                            {order.orderId || "Order ID unavailable"}
+                          </p>
                         </div>
 
-                        {/* Product information */}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <h3 className="break-words text-base font-bold text-slate-900 transition group-hover:text-orange-600 sm:text-lg">
-                                {product?.title || "Product unavailable"}
-                              </h3>
+                        <span
+                          className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ring-inset ${statusStyle.badge}`}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full ${statusStyle.dot}`} />
+                          {statusStyle.label}
+                        </span>
+                      </div>
 
-                              <p className="mt-1 text-xs text-slate-500 sm:text-sm">
-                                Order placed on {formatDate(order.createdAt)}
-                              </p>
-                            </div>
+                      <div className="space-y-4">
+                        {products.length > 0 ? (
+                          products.map((item, index) => {
+                            const product = item.product;
+                            const productImage = getProductImage(product);
 
-                            <span
-                              className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ring-inset ${statusStyle.badge}`}
-                            >
-                              <span
-                                className={`h-1.5 w-1.5 rounded-full ${statusStyle.dot}`}
-                              />
-                              {statusStyle.label}
+                            return (
+                              <div
+                                key={product._id || index}
+                                className="flex flex-col gap-4 border-t border-slate-100 pt-4 sm:flex-row"
+                              >
+                                {/* Product image */}
+                                <div className="relative flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-slate-50 sm:h-28 sm:w-28">
+                                  {productImage ? (
+                                    <img
+                                      src={productImage}
+                                      alt={product.title || "Product"}
+                                      loading="lazy"
+                                      className="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105"
+                                      onError={(event) => {
+                                        event.currentTarget.style.visibility = "hidden";
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="flex flex-col items-center gap-2 text-slate-400">
+                                      <span className="text-3xl">▧</span>
+                                      <span className="text-xs">No image</span>
+                                    </div>
+                                  )}
+
+                                  <span className="absolute left-2 top-2 rounded-md bg-orange-500 px-2 py-1 text-[10px] font-bold text-white shadow-sm">
+                                    ORDER
+                                  </span>
+                                </div>
+
+                                {/* Product details */}
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="break-words text-base font-bold text-slate-900 transition group-hover:text-orange-600 sm:text-lg">
+                                    {product.title || "Product unavailable"}
+                                  </h3>
+
+                                  {product.brand && (
+                                    <p className="mt-1 text-sm text-slate-500">
+                                      Brand: {product.brand}
+                                    </p>
+                                  )}
+
+                                  {product.category && (
+                                    <p className="mt-1 text-xs capitalize text-slate-500">
+                                      Category: {product.category}
+                                    </p>
+                                  )}
+
+                                  <div className="mt-4 grid grid-cols-2 gap-3 sm:max-w-md">
+                                    <div>
+                                      <p className="text-xs text-slate-400">
+                                        Unit price
+                                      </p>
+                                      <p className="mt-1 font-semibold text-slate-800">
+                                        ₹{formatAmount(item.price)}
+                                      </p>
+                                    </div>
+
+                                    <div>
+                                      <p className="text-xs text-slate-400">
+                                        Quantity
+                                      </p>
+                                      <p className="mt-1 font-semibold text-slate-800">
+                                        {item.quantity || 1}
+                                      </p>
+                                    </div>
+
+                                    <div className="col-span-2">
+                                      <p className="text-xs text-slate-400">
+                                        Item total
+                                      </p>
+                                      <p className="mt-1 text-lg font-bold text-orange-600">
+                                        ₹
+                                        {formatAmount(
+                                          Number(item.price || 0) *
+                                            Number(item.quantity || 1)
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <p className="border-t border-slate-100 pt-4 text-sm text-slate-500">
+                            Product details are unavailable for this order.
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-5 flex flex-col justify-between gap-4 border-t border-slate-100 pt-4 sm:flex-row sm:items-end">
+                        <div>
+                          <p className="text-xs text-slate-400">
+                            Total order amount
+                          </p>
+                          <p className="mt-1 text-xl font-bold text-slate-900">
+                            <span className="mr-1 text-orange-500">₹</span>
+                            {formatAmount(Number(order.amount || 0) / 100)}
+                            <span className="ml-1 text-xs font-medium text-slate-400">
+                              {order.currency || "INR"}
                             </span>
-                          </div>
-
-                          <div className="mt-5 grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2 xl:grid-cols-3">
-                            <div>
-                              <p className="text-xs text-slate-400">
-                                Total amount
-                              </p>
-                              <p className="mt-1 text-lg font-bold text-slate-900">
-                                <span className="mr-1 text-orange-500">₹</span>
-                                {formatAmount(order.amount)}
-                                <span className="ml-1 text-xs font-medium text-slate-400">
-                                  {order.currency || "INR"}
-                                </span>
-                              </p>
-                            </div>
-
-                            <div className="min-w-0">
-                              <p className="text-xs text-slate-400">
-                                Order ID
-                              </p>
-                              <p className="mt-1 break-all text-xs font-medium leading-5 text-slate-700">
-                                {order.orderId || "Not available"}
-                              </p>
-                            </div>
-
-                            <div className="min-w-0">
-                              <p className="text-xs text-slate-400">
-                                Payment ID
-                              </p>
-                              <p className="mt-1 break-all text-xs font-medium leading-5 text-slate-700">
-                                {order.paymentId || "Not available"}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                            <p className="text-xs text-slate-500">
-                              Payment status:{" "}
-                              <span className="font-semibold text-slate-700">
-                                {statusStyle.label}
-                              </span>
-                            </p>
-
-                            <button
-                              type="button"
-                              onClick={() => setSelectedOrder(order)}
-                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-2.5 text-xs font-semibold text-orange-700 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white sm:text-sm"
-                            >
-                              View details
-                              <span aria-hidden="true">→</span>
-                            </button>
-                          </div>
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">
+                            Payment ID: {order.paymentId || "Not available"}
+                          </p>
                         </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedOrder(order)}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-2.5 text-xs font-semibold text-orange-700 transition hover:border-orange-500 hover:bg-orange-500 hover:text-white sm:text-sm"
+                        >
+                          View details <span aria-hidden="true">→</span>
+                        </button>
                       </div>
                     </div>
                   </article>
@@ -520,9 +557,7 @@ const Order = () => {
             <p>
               Showing {filteredOrders.length} of {orders.length} orders
             </p>
-            <p>
-              Your order history, all in one place.
-            </p>
+            <p>Your order history, all in one place.</p>
           </div>
         )}
       </main>
@@ -564,13 +599,15 @@ const Order = () => {
             </div>
 
             <div className="mt-6 rounded-xl bg-orange-50/70 p-4">
-              <p className="text-sm font-semibold text-slate-800">
-                {selectedOrder.product?.title || "Product unavailable"}
+              <p className="text-xs text-slate-500">
+                Order date: {formatDate(selectedOrder.createdAt)}
               </p>
+
               <p className="mt-2 text-xl font-bold text-orange-600">
                 {selectedOrder.currency || "INR"}{" "}
-                {formatAmount(selectedOrder.amount)}
+                {formatAmount(Number(selectedOrder.amount || 0) / 100)}
               </p>
+
               <div className="mt-3">
                 <span
                   className={`inline-flex rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ring-inset ${getStatusStyle(selectedOrder.status).badge}`}
@@ -581,6 +618,46 @@ const Order = () => {
             </div>
 
             <div className="mt-5 space-y-4">
+              <h3 className="text-sm font-bold text-slate-800">
+                Products in this order
+              </h3>
+
+              {getOrderProducts(selectedOrder).map((item, index) => {
+                const product = item.product;
+                const productImage = getProductImage(product);
+
+                return (
+                  <div
+                    key={product._id || index}
+                    className="flex gap-3 border-b border-slate-100 pb-4 last:border-0"
+                  >
+                    {productImage ? (
+                      <img
+                        src={productImage}
+                        alt={product.title || "Product"}
+                        className="h-16 w-16 rounded-lg border border-slate-100 bg-slate-50 object-contain p-1"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">
+                        No image
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words text-sm font-semibold text-slate-800">
+                        {product.title || "Product unavailable"}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Quantity: {item.quantity || 1}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-orange-600">
+                        ₹{formatAmount(item.price)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+
               {[
                 ["Order ID", selectedOrder.orderId || "Not available"],
                 ["Payment ID", selectedOrder.paymentId || "Not available"],
