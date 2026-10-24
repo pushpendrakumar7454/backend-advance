@@ -1,5 +1,7 @@
+
 import { Router } from "express";
 import productModel from "../modules/product.module.js";
+import cartModel from "../modules/cart.module.js";
 import razorpayInstance from "../config/razorpay.js";
 import razorpayModel from "../modules/razorpay.module.js";
 import {
@@ -8,15 +10,11 @@ import {
 import { config } from "../config/config.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 
-// Is import path ko apne actual middleware path se match karo.
-
-
 const router = Router();
 
-// Create Razorpay order
-router.post("/:productId/order", authenticate, async (req, res) => {
+// Create ONE Razorpay order for the complete cart
+router.post("/cart/order", authenticate, async (req, res) => {
   try {
-    const { productId } = req.params;
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -25,54 +23,107 @@ router.post("/:productId/order", authenticate, async (req, res) => {
       });
     }
 
-    const product = await productModel.findById(productId);
+    // Find logged-in user's cart
+    const cart = await cartModel
+      .findOne({ user: userId })
+      .populate("products.product");
 
-    if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
-      });
-    }
-
-    if (
-      !product.price ||
-      typeof product.price.amount !== "number" ||
-      !Number.isFinite(product.price.amount) ||
-      product.price.amount <= 0 ||
-      !product.price.currency
-    ) {
+    if (!cart || cart.products.length === 0) {
       return res.status(400).json({
-        message: "Product price or currency is invalid",
+        message: "Your cart is empty",
       });
     }
 
-    // Razorpay amount paise mein leta hai.
+    const purchasedProducts = [];
+    let totalAmount = 0;
+    let currency = "";
+
+    // Calculate amount from database product prices
+    for (const item of cart.products) {
+      const product = item.product;
+      const quantity = Number(item.quantity);
+
+      if (!product) {
+        return res.status(400).json({
+          message: "A product in your cart was not found",
+        });
+      }
+
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        return res.status(400).json({
+          message: "Invalid product quantity",
+        });
+      }
+
+      const price = product.price?.amount;
+      const productCurrency = product.price?.currency;
+
+      if (
+        typeof price !== "number" ||
+        !Number.isFinite(price) ||
+        price <= 0 ||
+        !productCurrency
+      ) {
+        return res.status(400).json({
+          message: `Invalid price for ${product.title || "a product"}`,
+        });
+      }
+
+      // All products must use the same currency
+      if (!currency) {
+        currency = productCurrency;
+      } else if (currency !== productCurrency) {
+        return res.status(400).json({
+          message: "All cart products must use the same currency",
+        });
+      }
+
+      purchasedProducts.push({
+        product: product._id,
+        quantity,
+        price,
+      });
+
+      totalAmount += price * quantity;
+    }
+
+    // Razorpay accepts amount in the smallest currency unit (paise for INR)
+    const amountInPaise = Math.round(totalAmount * 100);
+
+    if (!Number.isSafeInteger(amountInPaise) || amountInPaise <= 0) {
+      return res.status(400).json({
+        message: "Invalid total amount",
+      });
+    }
+
+    // Create ONE Razorpay order
     const order = await razorpayInstance.orders.create({
-      amount: Math.round(product.price.amount * 100),
-      currency: product.price.currency,
+      amount: amountInPaise,
+      currency,
       receipt: `receipt_${Date.now()}`,
       notes: {
-        productId: String(product._id),
-        productTitle: product.title || "Product",
+        userId: String(userId),
+        itemCount: String(purchasedProducts.length),
       },
     });
 
-    // Pending payment record database mein save karo.
+    // Save ONE payment record containing ALL products
     const payment = await razorpayModel.create({
       orderId: order.id,
       user: userId,
-      product: product._id,
-      amount: product.price.amount,
-      currency: product.price.currency,
+      products: purchasedProducts,
+      amount: amountInPaise,
+      currency,
       status: "pending",
     });
 
     return res.status(201).json({
-      message: "Order created successfully",
+      message: "Cart payment order created successfully",
       order,
       payment,
     });
   } catch (error) {
-    console.error("Create order error:", error);
+    console.error("Create cart order error:", error);
 
     return res.status(500).json({
       message: "Unable to create payment order",
@@ -109,7 +160,6 @@ router.post("/verify", authenticate, async (req, res) => {
       });
     }
 
-    // Order isi logged-in user ka hona chahiye.
     const existingPayment = await razorpayModel.findOne({
       orderId: razorpay_order_id,
       user: userId,
@@ -122,11 +172,11 @@ router.post("/verify", authenticate, async (req, res) => {
       });
     }
 
-    // Already completed payment ko dobara process mat karo.
     if (existingPayment.status === "completed") {
       return res.status(200).json({
         status: true,
         message: "Payment already verified",
+        payment: existingPayment,
       });
     }
 
@@ -146,6 +196,23 @@ router.post("/verify", authenticate, async (req, res) => {
       });
     }
 
+    // Confirm the payment is captured before marking it completed
+    const razorpayPayment =
+      await razorpayInstance.payments.fetch(razorpay_payment_id);
+
+    if (
+      razorpayPayment.order_id !== razorpay_order_id ||
+      razorpayPayment.status !== "captured" ||
+      razorpayPayment.amount !== existingPayment.amount ||
+      razorpayPayment.currency !== existingPayment.currency
+    ) {
+      return res.status(400).json({
+        status: false,
+        message: "Payment is not captured or payment details do not match",
+      });
+    }
+
+    // Update only a pending payment belonging to this user
     const payment = await razorpayModel.findOneAndUpdate(
       {
         orderId: razorpay_order_id,
@@ -170,6 +237,12 @@ router.post("/verify", authenticate, async (req, res) => {
       });
     }
 
+    // Clear the cart only after successful verification
+    await cartModel.findOneAndUpdate(
+      { user: userId },
+      { $set: { products: [] } }
+    );
+
     return res.status(200).json({
       status: true,
       message: "Payment verified successfully",
@@ -185,7 +258,7 @@ router.post("/verify", authenticate, async (req, res) => {
   }
 });
 
-// Logged-in user ke orders fetch karo
+// Get logged-in user's payment orders
 router.get("/my-orders", authenticate, async (req, res) => {
   try {
     const userId = req.user?.userId;
@@ -198,7 +271,7 @@ router.get("/my-orders", authenticate, async (req, res) => {
 
     const orders = await razorpayModel
       .find({ user: userId })
-      .populate("product")
+      .populate("products.product")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
