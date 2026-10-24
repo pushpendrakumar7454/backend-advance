@@ -258,9 +258,81 @@ const ProductDetail = () => {
     }
   };
 
-  const handleBuyNow = async () => {
-    await handleAddToCart();
-  };
+const handleBuyNow = async () => {
+  try {
+    if (!product?._id) {
+      alert("Product not found");
+      return;
+    }
+
+    if (!import.meta.env.VITE_RAZORPAY_KEY_ID) {
+      alert("Razorpay Key ID is missing");
+      return;
+    }
+
+    // Step 1: Backend se order create karo
+    const orderResponse = await apiInstance.post(
+      `/product/${product._id}/order`
+    );
+
+    const order = orderResponse.data.order;
+
+    // Step 2: Razorpay payment options
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      name: "NEXORA",
+      description: product.title,
+      order_id: order.id,
+
+      // Step 3: Payment ke baad verification
+      handler: async function (response) {
+        try {
+          const verifyResponse = await apiInstance.post(
+            "/product/verify",
+            {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }
+          );
+
+          if (verifyResponse.data.status === true) {
+            alert("Payment successful!");
+          } else {
+            alert("Payment verification failed");
+          }
+        } catch (error) {
+          console.error("Payment verification error:", error);
+
+          alert(
+            error.response?.data?.message ||
+              "Payment verification failed"
+          );
+        }
+      },
+    };
+
+    // Step 4: Razorpay checkout open karo
+    const razorpay = new window.Razorpay(options);
+
+    razorpay.on("payment.failed", function (response) {
+      alert(
+        response.error?.description || "Payment failed"
+      );
+    });
+
+    razorpay.open();
+  } catch (error) {
+    console.error("Buy Now error:", error);
+
+    alert(
+      error.response?.data?.message ||
+        "Unable to start payment"
+    );
+  }
+};
 
   // ==================================
   // LOADING
