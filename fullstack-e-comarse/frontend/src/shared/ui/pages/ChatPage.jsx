@@ -6,57 +6,119 @@ import io from "socket.io-client";
 const ChatPage = () => {
   const [inpurValues, setinpurValues] = useState("");
   const [massage, setMassage] = useState([]);
-  const socketRef = useRef();
+  const [connected, setConnected] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [socketError, setSocketError] = useState("");
+
+  const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   const { accessToken, user } = useSelector((state) => state.auth);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const currentUserId = user?.userId || user?._id || user?.id;
 
-    if (!inpurValues.trim()) return;
-
-    socketRef.current.emit("message", {
-      content: inpurValues,
-    });
-
-    setMassage((prev) => [
-      ...prev,
-      { content: inpurValues, outgoing: true },
-    ]);
-
-    setinpurValues("");
-  };
-
+  // Connect Socket.IO
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      setConnected(false);
+      setSocketError("Please log in to use chat.");
+      return;
+    }
 
-    const socket = io({
-      extraHeaders: {
-        Authorization: `Bearer ${accessToken}`,
+    const socket = io( {
+      auth: {
+        token: accessToken,
       },
     });
 
     socketRef.current = socket;
 
-    socket.on("message", (msg) => {
-      setMassage((prev) => [
-        ...prev,
-        { ...msg, outgoing: false },
-      ]);
+    socket.on("connect", () => {
+      setConnected(true);
+      setSocketError("");
+      console.log("Socket connected:", socket.id);
+    });
+
+    socket.on("connect_error", (error) => {
+      setConnected(false);
+      setSocketError(error.message || "Unable to connect to chat.");
+      console.error("Socket connection error:", error.message);
+    });
+
+    // Receive messages saved by the server
+    const handleMessage = (msg) => {
+      const senderId = msg.senderId || msg.sender?._id;
+
+      const outgoing =
+        currentUserId != null &&
+        senderId != null &&
+        String(senderId) === String(currentUserId);
+
+      setMassage((prev) => {
+        // Prevent duplicate messages
+        if (msg._id && prev.some((item) => item._id === msg._id)) {
+          return prev;
+        }
+
+        return [
+          ...prev,
+          {
+            ...msg,
+            content: msg.message || msg.content || "",
+            outgoing,
+          },
+        ];
+      });
+    };
+
+    socket.on("message", handleMessage);
+
+    socket.on("disconnect", () => {
+      setConnected(false);
     });
 
     return () => {
+      socket.off("message", handleMessage);
       socket.disconnect();
+      socketRef.current = null;
     };
-  }, [accessToken]);
+  }, [accessToken, currentUserId]);
 
+  // Scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "end",
     });
   }, [massage]);
+
+  // Send message
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const text = inpurValues.trim();
+    const socket = socketRef.current;
+
+    if (!text || !socket?.connected || sending) {
+      return;
+    }
+
+    setSending(true);
+
+    socket.emit("message", { message: text }, (response) => {
+      setSending(false);
+
+      if (!response?.success) {
+        setSocketError(
+          response?.message || "Message could not be saved."
+        );
+        return;
+      }
+
+      setinpurValues("");
+      setSocketError("");
+    });
+  };
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
@@ -90,10 +152,24 @@ const ChatPage = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-full border border-green-100 bg-green-50 px-3 py-2">
-            <span className="h-2 w-2 rounded-full bg-green-500" />
-            <span className="text-xs font-semibold text-green-700">
-              Online
+          <div
+            className={`flex items-center gap-2 rounded-full border px-3 py-2 ${
+              connected
+                ? "border-green-100 bg-green-50"
+                : "border-red-100 bg-red-50"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                connected ? "bg-green-500" : "bg-red-500"
+              }`}
+            />
+            <span
+              className={`text-xs font-semibold ${
+                connected ? "text-green-700" : "text-red-600"
+              }`}
+            >
+              {connected ? "Online" : "Offline"}
             </span>
           </div>
         </div>
@@ -102,8 +178,7 @@ const ChatPage = () => {
       {/* Main page */}
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8">
         <div className="grid min-h-[calc(100dvh-7.5rem)] grid-cols-1 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_8px_40px_rgba(0,0,0,0.04)] lg:min-h-[calc(100dvh-9rem)] lg:grid-cols-[280px_minmax(0,1fr)]">
-
-          {/* Left sidebar */}
+          {/* Sidebar */}
           <aside className="hidden border-r border-gray-100 bg-white lg:block">
             <div className="border-b border-gray-100 p-6">
               <h2 className="text-xl font-bold text-gray-900">
@@ -162,7 +237,6 @@ const ChatPage = () => {
 
           {/* Chat area */}
           <section className="flex min-h-[75vh] min-w-0 flex-col bg-white lg:min-h-0">
-
             {/* Chat header */}
             <header className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-4 sm:px-6 sm:py-5">
               <div className="flex min-w-0 items-center gap-3">
@@ -176,8 +250,12 @@ const ChatPage = () => {
                     Nexora Support
                   </h2>
                   <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                    Available now
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        connected ? "bg-green-500" : "bg-red-500"
+                      }`}
+                    />
+                    {connected ? "Connected to chat" : "Connecting..."}
                   </p>
                 </div>
               </div>
@@ -232,32 +310,18 @@ const ChatPage = () => {
                   </p>
 
                   <div className="mt-5 flex items-center gap-2 text-xs text-gray-400">
-                    <svg
-                      className="h-4 w-4 text-orange-500"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 18h.01M8 21h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2Z"
-                      />
-                    </svg>
+                    <span className="text-orange-500">●</span>
                     <span>Simple, fast and real-time messaging</span>
                   </div>
                 </div>
               )}
 
               <div className="space-y-6">
-                {massage.map((item, index) => (
+                {massage.map((item) => (
                   <div
-                    key={index}
+                    key={item._id || `${item.senderId}-${item.createdAt}`}
                     className={`flex items-end gap-2.5 ${
-                      item.outgoing
-                        ? "justify-end"
-                        : "justify-start"
+                      item.outgoing ? "justify-end" : "justify-start"
                     }`}
                   >
                     {!item.outgoing && (
@@ -268,9 +332,7 @@ const ChatPage = () => {
 
                     <div
                       className={`flex max-w-[85%] flex-col sm:max-w-[70%] ${
-                        item.outgoing
-                          ? "items-end"
-                          : "items-start"
+                        item.outgoing ? "items-end" : "items-start"
                       }`}
                     >
                       <div
@@ -287,6 +349,11 @@ const ChatPage = () => {
 
                       <span className="mt-1.5 px-1 text-[11px] text-gray-400">
                         {item.outgoing ? "You" : "Nexora"}
+                        {item.createdAt &&
+                          ` · ${new Date(item.createdAt).toLocaleTimeString(
+                            [],
+                            { hour: "2-digit", minute: "2-digit" }
+                          )}`}
                       </span>
                     </div>
 
@@ -302,17 +369,20 @@ const ChatPage = () => {
               </div>
             </div>
 
+            {/* Connection / error message */}
+            {socketError && (
+              <div className="border-t border-red-100 bg-red-50 px-4 py-2 text-xs text-red-600">
+                {socketError}
+              </div>
+            )}
+
             {/* Input area */}
             <footer className="border-t border-gray-100 bg-white p-3 sm:px-6 sm:py-5">
               <form
                 onSubmit={handleSubmit}
                 className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-2 transition-all focus-within:border-orange-400 focus-within:ring-4 focus-within:ring-orange-50 sm:gap-3 sm:p-2.5"
               >
-                <button
-                  type="button"
-                  aria-label="Message"
-                  className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-500 sm:flex"
-                >
+                <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-500 sm:flex">
                   <svg
                     className="h-5 w-5"
                     viewBox="0 0 24 24"
@@ -326,24 +396,33 @@ const ChatPage = () => {
                       d="M8 10h8M8 14h5m-8 6 3.5-3H17a4 4 0 0 0 4-4V7a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v10a3 3 0 0 0 2 3Z"
                     />
                   </svg>
-                </button>
+                </div>
 
                 <input
                   value={inpurValues}
                   onChange={(e) => setinpurValues(e.target.value)}
                   type="text"
-                  placeholder="Type your message..."
+                  placeholder={
+                    connected
+                      ? "Type your message..."
+                      : "Waiting for connection..."
+                  }
                   aria-label="Type your message"
                   autoComplete="off"
-                  className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-gray-800 outline-none placeholder:text-gray-400 sm:px-3 sm:text-base"
+                  disabled={!connected || sending}
+                  className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-gray-800 outline-none placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-60 sm:px-3 sm:text-base"
                 />
 
                 <button
                   type="submit"
-                  disabled={!inpurValues.trim()}
+                  disabled={
+                    !inpurValues.trim() || !connected || sending
+                  }
                   className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-300 sm:px-5"
                 >
-                  <span className="hidden sm:inline">Send</span>
+                  <span className="hidden sm:inline">
+                    {sending ? "Sending..." : "Send"}
+                  </span>
 
                   <svg
                     className="h-5 w-5"
