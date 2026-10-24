@@ -20,11 +20,11 @@ const razorpaySchema=new mongoose.Schema({
     },
     user:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:""
+        ref:"authModelE-comarseProjectFull"
     },
     product:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"",
+        ref:"fullStack-e-comarseProject",
         required:true
     },
     status:{
@@ -32,6 +32,8 @@ const razorpaySchema=new mongoose.Schema({
         enum:["pending","completed","failed"],
         default:"pending"
     }
+},{
+    timestamps:true
 })
 
 
