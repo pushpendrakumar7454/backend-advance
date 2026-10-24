@@ -92,63 +92,10 @@ const UserHeader = () => {
               </NavLink>
 
               {/* CATEGORY */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setCategoryOpen(!categoryOpen)}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-orange-500 transition">
-                  Categories
-                  <FiChevronDown
-                    className={`text-sm transition-transform ${
-                      categoryOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {categoryOpen && (
-                  <div className="absolute top-10 left-0 w-52 bg-white border border-[#eaecf0] rounded-2xl shadow-[0_20px_50px_rgba(16,24,40,0.12)] p-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate("/products");
-                        setCategoryOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-500 transition">
-                      All Products
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate("/products?category=men");
-                        setCategoryOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-500 transition">
-                      Men's Collection
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate("/products?category=women");
-                        setCategoryOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-500 transition">
-                      Women's Collection
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate("/products?category=electronics");
-                        setCategoryOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-500 transition">
-                      Electronics
-                    </button>
-                  </div>
-                )}
-              </div>
+              <NavLink to="/user-header/order" className={navLinkStyle}>
+                Orders
+              </NavLink>
+              
 
               <NavLink to="/user-header/about" className={navLinkStyle}>
                 About
