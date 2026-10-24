@@ -7,7 +7,7 @@ import cartRouter from "../router/cart.router.js";
 import cors from "cors";
 import passport from "../config/passport.js";
 import paymentRoute from '../router/razorpayment.route.js'
-import messageRoutes from "./routes/message.routes.js";
+import messageRoutes from "../router/message.route.js";
 const app = express();
 
 // CORS configuration
