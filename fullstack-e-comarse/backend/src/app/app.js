@@ -6,6 +6,7 @@ import productRouter from "../router/product.route.js";
 import cartRouter from "../router/cart.router.js";
 import cors from "cors";
 import passport from "../config/passport.js";
+import paymentRoute from '../router/razorpayment.route.js'
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(passport.initialize());
 app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 app.use("/api/cart", cartRouter);
+app.use('/api/payment',paymentRoute)
 
 // Test route
 app.get("/test", (req, res) => {
