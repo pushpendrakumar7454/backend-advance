@@ -272,7 +272,7 @@ const handleBuyNow = async () => {
 
     // Step 1: Backend se order create karo
     const orderResponse = await apiInstance.post(
-      `/product/${product._id}/order`
+      `/payment/${product._id}/order`
     );
 
     const order = orderResponse.data.order;
@@ -290,7 +290,7 @@ const handleBuyNow = async () => {
       handler: async function (response) {
         try {
           const verifyResponse = await apiInstance.post(
-            "/product/verify",
+            "/payment/verify",
             {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
