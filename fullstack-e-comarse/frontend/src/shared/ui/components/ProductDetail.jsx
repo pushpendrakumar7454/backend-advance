@@ -270,14 +270,14 @@ const handleBuyNow = async () => {
       return;
     }
 
-    // Step 1: Backend se order create karo
+    // create a order from backend
     const orderResponse = await apiInstance.post(
       `/payment/${product._id}/order`
     );
 
     const order = orderResponse.data.order;
 
-    // Step 2: Razorpay payment options
+    // Step 2: razorpay payment options
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
       amount: order.amount,
@@ -286,7 +286,7 @@ const handleBuyNow = async () => {
       description: product.title,
       order_id: order.id,
 
-      // Step 3: Payment ke baad verification
+      // Step 3: payment completed   after than verify the payment
       handler: async function (response) {
         try {
           const verifyResponse = await apiInstance.post(
@@ -314,7 +314,7 @@ const handleBuyNow = async () => {
       },
     };
 
-    // Step 4: Razorpay checkout open karo
+    // Step 4: opan razopay checkout
     const razorpay = new window.Razorpay(options);
 
     razorpay.on("payment.failed", function (response) {
