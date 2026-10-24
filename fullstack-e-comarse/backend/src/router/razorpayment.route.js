@@ -12,7 +12,99 @@ import { authenticate } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// Create ONE Razorpay order for the complete cart
+
+router.post("/:productId/order", authenticate, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { productId } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Please login first",
+      });
+    }
+
+    const product = await productModel.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found",
+      });
+    }
+
+    const quantity = Number(req.body?.quantity || 1);
+    const price = product.price?.amount;
+    const currency = product.price?.currency;
+
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+      return res.status(400).json({
+        message: "Invalid quantity",
+      });
+    }
+
+    if (
+      typeof price !== "number" ||
+      !Number.isFinite(price) ||
+      price <= 0 ||
+      !currency
+    ) {
+      return res.status(400).json({
+        message: "Invalid product price",
+      });
+    }
+
+    const amountInPaise = Math.round(price * quantity * 100);
+
+    if (!Number.isSafeInteger(amountInPaise) || amountInPaise <= 0) {
+      return res.status(400).json({
+        message: "Invalid order amount",
+      });
+    }
+
+    const order = await razorpayInstance.orders.create({
+      amount: amountInPaise,
+      currency,
+      receipt: `buy_${Date.now()}`,
+      notes: {
+        userId: String(userId),
+        productId: String(product._id),
+        quantity: String(quantity),
+      },
+    });
+
+    const payment = await razorpayModel.create({
+      orderId: order.id,
+      user: userId,
+      products: [
+        {
+          product: product._id,
+          quantity,
+          price,
+        },
+      ],
+      amount: amountInPaise,
+      currency,
+      status: "pending",
+    });
+
+    return res.status(201).json({
+      message: "Payment order created successfully",
+      order,
+      payment,
+    });
+  } catch (error) {
+    console.error("Create product order error:", error);
+
+    return res.status(500).json({
+      message: "Unable to create payment order",
+    });
+  }
+});
+
+// ============================================
+// 2. CART CHECKOUT - ALL CART PRODUCTS
+// POST /api/payment/cart/order
+// ============================================
 router.post("/cart/order", authenticate, async (req, res) => {
   try {
     const userId = req.user?.userId;
@@ -23,12 +115,11 @@ router.post("/cart/order", authenticate, async (req, res) => {
       });
     }
 
-    // Find logged-in user's cart
     const cart = await cartModel
       .findOne({ user: userId })
       .populate("products.product");
 
-    if (!cart || cart.products.length === 0) {
+    if (!cart || !cart.products || cart.products.length === 0) {
       return res.status(400).json({
         message: "Your cart is empty",
       });
@@ -38,7 +129,6 @@ router.post("/cart/order", authenticate, async (req, res) => {
     let totalAmount = 0;
     let currency = "";
 
-    // Calculate amount from database product prices
     for (const item of cart.products) {
       const product = item.product;
       const quantity = Number(item.quantity);
@@ -69,7 +159,6 @@ router.post("/cart/order", authenticate, async (req, res) => {
         });
       }
 
-      // All products must use the same currency
       if (!currency) {
         currency = productCurrency;
       } else if (currency !== productCurrency) {
@@ -87,7 +176,6 @@ router.post("/cart/order", authenticate, async (req, res) => {
       totalAmount += price * quantity;
     }
 
-    // Razorpay accepts amount in the smallest currency unit (paise for INR)
     const amountInPaise = Math.round(totalAmount * 100);
 
     if (!Number.isSafeInteger(amountInPaise) || amountInPaise <= 0) {
@@ -96,18 +184,16 @@ router.post("/cart/order", authenticate, async (req, res) => {
       });
     }
 
-    // Create ONE Razorpay order
     const order = await razorpayInstance.orders.create({
       amount: amountInPaise,
       currency,
-      receipt: `receipt_${Date.now()}`,
+      receipt: `cart_${Date.now()}`,
       notes: {
         userId: String(userId),
         itemCount: String(purchasedProducts.length),
       },
     });
 
-    // Save ONE payment record containing ALL products
     const payment = await razorpayModel.create({
       orderId: order.id,
       user: userId,
@@ -131,7 +217,10 @@ router.post("/cart/order", authenticate, async (req, res) => {
   }
 });
 
-// Verify Razorpay payment
+// ============================================
+// 3. VERIFY PAYMENT
+// POST /api/payment/verify
+// ============================================
 router.post("/verify", authenticate, async (req, res) => {
   try {
     const {
@@ -196,7 +285,6 @@ router.post("/verify", authenticate, async (req, res) => {
       });
     }
 
-    // Confirm the payment is captured before marking it completed
     const razorpayPayment =
       await razorpayInstance.payments.fetch(razorpay_payment_id);
 
@@ -208,11 +296,11 @@ router.post("/verify", authenticate, async (req, res) => {
     ) {
       return res.status(400).json({
         status: false,
-        message: "Payment is not captured or payment details do not match",
+        message:
+          "Payment is not captured or payment details do not match",
       });
     }
 
-    // Update only a pending payment belonging to this user
     const payment = await razorpayModel.findOneAndUpdate(
       {
         orderId: razorpay_order_id,
@@ -237,11 +325,16 @@ router.post("/verify", authenticate, async (req, res) => {
       });
     }
 
-    // Clear the cart only after successful verification
-    await cartModel.findOneAndUpdate(
-      { user: userId },
-      { $set: { products: [] } }
-    );
+    // Clear cart only if this was a cart checkout.
+    // Do not clear cart after buying a single product.
+    const isCartOrder = razorpayPayment.notes?.itemCount !== undefined;
+
+    if (isCartOrder) {
+      await cartModel.findOneAndUpdate(
+        { user: userId },
+        { $set: { products: [] } }
+      );
+    }
 
     return res.status(200).json({
       status: true,
@@ -258,7 +351,10 @@ router.post("/verify", authenticate, async (req, res) => {
   }
 });
 
-// Get logged-in user's payment orders
+// ============================================
+// 4. MY ORDERS
+// GET /api/payment/my-orders
+// ============================================
 router.get("/my-orders", authenticate, async (req, res) => {
   try {
     const userId = req.user?.userId;

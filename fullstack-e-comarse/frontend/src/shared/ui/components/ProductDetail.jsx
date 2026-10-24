@@ -445,7 +445,7 @@ const handleBuyNow = async () => {
         type="button"
         key={item._id}
         onClick={() =>
-          navigate(`/user-header/product/${item._id}`)
+          navigate(`/user-header/product-detail/${item._id}`)
         }
         className="group min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white text-left transition duration-300 hover:-translate-y-1 hover:border-orange-300 hover:shadow-xl hover:shadow-orange-100/50"
       >
