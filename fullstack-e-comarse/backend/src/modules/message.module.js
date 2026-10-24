@@ -19,6 +19,6 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-const messageModel = mongoose.model("ChatMessage", messageSchema);
+const messageModel = mongoose.model("FUllStackChatMessage", messageSchema);
 
 export default messageModel;
