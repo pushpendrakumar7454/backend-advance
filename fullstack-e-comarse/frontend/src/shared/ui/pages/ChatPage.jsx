@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import io from "socket.io-client";
@@ -21,24 +20,18 @@ const ChatPage = () => {
 
   const { accessToken, user } = useSelector((state) => state.auth);
 
-  const currentUserId =
-    user?.userId || user?._id || user?.id;
+  const currentUserId = user?.userId || user?._id || user?.id;
 
   // Format database and socket messages
   const formatMessage = (msg) => {
-    const senderId =
-      msg.senderId?._id ||
-      msg.senderId ||
-      msg.sender?._id ||
-      "";
+    const senderId = msg.senderId?._id || msg.senderId || msg.sender?._id || "";
 
     return {
       ...msg,
       senderId: String(senderId),
       content: msg.message || msg.content || "",
       outgoing:
-        currentUserId != null &&
-        String(senderId) === String(currentUserId),
+        currentUserId != null && String(senderId) === String(currentUserId),
     };
   };
 
@@ -58,22 +51,18 @@ const ChatPage = () => {
           },
         });
 
-        const oldMessages =
-          response.data.messages ||
-          response.data.data ||
-          [];
+        const oldMessages = response.data.messages || response.data.data || [];
 
         setMassage(oldMessages.map(formatMessage));
         setSocketError("");
       } catch (error) {
         console.error(
           "Fetch messages error:",
-          error.response?.data || error.message
+          error.response?.data || error.message,
         );
 
         setSocketError(
-          error.response?.data?.message ||
-            "Unable to load previous messages."
+          error.response?.data?.message || "Unable to load previous messages.",
         );
       } finally {
         setLoadingMessages(false);
@@ -118,9 +107,7 @@ const ChatPage = () => {
       setMassage((previousMessages) => {
         if (
           newMessage._id &&
-          previousMessages.some(
-            (item) => item._id === newMessage._id
-          )
+          previousMessages.some((item) => item._id === newMessage._id)
         ) {
           return previousMessages;
         }
@@ -170,9 +157,7 @@ const ChatPage = () => {
       setSending(false);
 
       if (!response?.success) {
-        setSocketError(
-          response?.message || "Message could not be saved."
-        );
+        setSocketError(response?.message || "Message could not be saved.");
         return;
       }
 
@@ -192,8 +177,7 @@ const ChatPage = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.8"
-              >
+                strokeWidth="1.8">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -217,8 +201,7 @@ const ChatPage = () => {
               connected
                 ? "border-green-100 bg-green-50"
                 : "border-red-100 bg-red-50"
-            }`}
-          >
+            }`}>
             <span
               className={`h-2 w-2 rounded-full ${
                 connected ? "bg-green-500" : "bg-red-500"
@@ -227,8 +210,7 @@ const ChatPage = () => {
             <span
               className={`text-xs font-semibold ${
                 connected ? "text-green-700" : "text-red-600"
-              }`}
-            >
+              }`}>
               {connected ? "Online" : "Offline"}
             </span>
           </div>
@@ -239,9 +221,7 @@ const ChatPage = () => {
         <div className="grid min-h-[calc(100dvh-7.5rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="hidden border-r border-gray-100 lg:block">
             <div className="border-b border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-900">
-                Messages
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900">Messages</h2>
               <p className="mt-1 text-sm text-gray-500">
                 Stay connected with your people.
               </p>
@@ -304,32 +284,31 @@ const ChatPage = () => {
                 </div>
               )}
 
-              <div className="space-y-5">
-                {massage.map((item, index) => (
+              <div className="flex flex-col gap-4">
+                {massage.map((item) => (
                   <div
-                    key={item._id || `${item.senderId}-${index}`}
-                    className={`flex items-end gap-2 ${
+                    key={item._id}
+                    className={`flex w-full items-end gap-2 ${
                       item.outgoing ? "justify-end" : "justify-start"
-                    }`}
-                  >
+                    }`}>
+                    {/* Incoming message ka avatar left side */}
                     {!item.outgoing && (
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-600">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-600">
                         N
                       </div>
                     )}
 
+                    {/* Message bubble */}
                     <div
-                      className={`flex max-w-[85%] flex-col ${
+                      className={`flex max-w-[80%] flex-col ${
                         item.outgoing ? "items-end" : "items-start"
-                      }`}
-                    >
+                      }`}>
                       <div
-                        className={`rounded-2xl px-4 py-3 text-sm leading-6 ${
+                        className={`rounded-2xl px-4 py-3 text-sm leading-6 sm:px-5 ${
                           item.outgoing
                             ? "rounded-br-sm bg-orange-500 text-white"
                             : "rounded-bl-sm border border-gray-200 bg-gray-50 text-gray-800"
-                        }`}
-                      >
+                        }`}>
                         <p className="whitespace-pre-wrap break-words">
                           {item.content}
                         </p>
@@ -343,13 +322,14 @@ const ChatPage = () => {
                             {
                               hour: "2-digit",
                               minute: "2-digit",
-                            }
+                            },
                           )}`}
                       </span>
                     </div>
 
+                    {/* Outgoing message ka avatar right side */}
                     {item.outgoing && (
-                      <div className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-600">
+                      <div className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-600">
                         {user?.name?.charAt(0)?.toUpperCase() || "U"}
                       </div>
                     )}
@@ -369,8 +349,7 @@ const ChatPage = () => {
             <footer className="border-t border-gray-100 bg-white p-3 sm:px-6 sm:py-5">
               <form
                 onSubmit={handleSubmit}
-                className="flex items-center gap-2 rounded-2xl border border-gray-200 p-2 focus-within:border-orange-400 focus-within:ring-4 focus-within:ring-orange-50"
-              >
+                className="flex items-center gap-2 rounded-2xl border border-gray-200 p-2 focus-within:border-orange-400 focus-within:ring-4 focus-within:ring-orange-50">
                 <input
                   value={inpurValues}
                   onChange={(e) => setinpurValues(e.target.value)}
@@ -387,11 +366,8 @@ const ChatPage = () => {
 
                 <button
                   type="submit"
-                  disabled={
-                    !inpurValues.trim() || !connected || sending
-                  }
-                  className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
-                >
+                  disabled={!inpurValues.trim() || !connected || sending}
+                  className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300">
                   {sending ? "Sending..." : "Send"}
                 </button>
               </form>
