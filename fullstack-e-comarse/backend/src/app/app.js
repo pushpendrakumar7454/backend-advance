@@ -27,7 +27,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 app.use("/api/cart", cartRouter);
 app.use('/api/payment',paymentRoute)
-app.use("/api/message",messageRoutes)
+app.use("/api/messages",messageRoutes)
 
 // Test route
 app.get("/test", (req, res) => {
