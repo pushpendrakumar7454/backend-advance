@@ -85,6 +85,7 @@ router.post("/cart/order", authenticate, async (req, res) => {
 
     // Razorpay expects the amount in the currency's smallest unit.
     // For INR, 1 rupee = 100 paise.
+    
     const amountInPaise = Math.round(totalAmount * 100);
 
     if (!Number.isSafeInteger(amountInPaise) || amountInPaise < 1) {
