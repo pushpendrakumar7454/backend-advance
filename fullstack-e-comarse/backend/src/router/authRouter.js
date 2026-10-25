@@ -44,6 +44,7 @@ router.get("/google/callback",passport.authenticate("google",{
         })
 
         res.redirect(`http://localhost:5173/google/callback?${params.toString()}`)
+        
     } catch (error) {
         res.redirect("http://localhost:5173/login")
     }
