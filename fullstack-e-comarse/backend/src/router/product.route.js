@@ -34,6 +34,7 @@ router.post(
   createProductValidator,
   createProductController,
 );
+
 router.get("/find", authenticate, findAllProductsControler); //for user find router
 router.get("/findone/:id",authenticate,findProductByIdController)
 router.delete(
