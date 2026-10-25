@@ -9,4 +9,5 @@ router.post("/add",authenticate,addToCartValidator,addToCartController)
 router.get("/",authenticate,getCartController)
 router.patch("/quantity",authenticate,updateCartQunatityController);
 router.delete("/remove",authenticate,removeCartProductController)
+
 export default router
