@@ -4,6 +4,7 @@ import { readAccessToken } from "../utils/auth.js";
 import messageModel from "../modules/message.module.js";
 
 const initializeServer = (httpServer) => {
+  
   const io = new Server(httpServer);
 
   // Verify access token
