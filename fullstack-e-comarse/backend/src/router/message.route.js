@@ -4,6 +4,7 @@ import messageModel from "../modules/message.module.js";
 const router = express.Router();
 
 router.get("/", async (req, res) => {
+  
   try {
     const messages = await messageModel
       .find()
