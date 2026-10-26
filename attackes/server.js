@@ -3,7 +3,7 @@ import express from 'express'
 
 const app=express()
 
-app.get("/",(req,res)=>{
+app.get("/api/login",(req,res)=>{
     res.send("Login endpoint")
 })
 
