@@ -661,7 +661,7 @@ const Cart = () => {
                                 onClick={() => decreaseProductQuantity(item)}
                                 disabled={item.quantity <= 1}
                                 aria-label="Decrease quantity"
-                                className="flex h-7 w-7 items-center justify-center rounded-md text-[#475467] transition hover:bg-[#F2F4F7] disabled:cursor-not-allowed disabled:opacity-40"
+                                className="flex h-7 cursor-pointer active:scale-95 w-7 items-center justify-center rounded-md text-[#475467] transition hover:bg-[#F2F4F7] disabled:cursor-not-allowed disabled:opacity-40"
                               >
                                 <FiMinus size={11} />
                               </button>
@@ -673,7 +673,7 @@ const Cart = () => {
                               <button
                                 onClick={() => increaseProductQuantity(item)}
                                 aria-label="Increase quantity"
-                                className="flex h-7 w-7 items-center justify-center rounded-md text-[#475467] transition hover:bg-[#F2F4F7]"
+                                className="flex h-7 active:scale-95 cursor-pointer w-7 items-center justify-center rounded-md text-[#475467] transition hover:bg-[#F2F4F7]"
                               >
                                 <FiPlus size={11} />
                               </button>
@@ -867,7 +867,7 @@ const Cart = () => {
                 <button
                   onClick={handleCheckout}
                   disabled={checkoutLoading || cartItems.length === 0}
-                  className="group mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_10px_28px_rgba(249,115,22,0.28)] transition duration-300 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="group mt-4 cursor-pointer active:scale-95 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_10px_28px_rgba(249,115,22,0.28)] transition duration-300 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {checkoutLoading ? "Processing..." : "Secure Checkout"}
 

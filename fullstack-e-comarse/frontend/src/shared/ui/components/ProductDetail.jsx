@@ -751,7 +751,7 @@ const handleBuyNow = async () => {
               <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <button
                   onClick={handleAddToCart}
-                  className="flex h-13 min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-orange-500 bg-white px-4 py-3 text-sm font-bold text-orange-600 transition hover:bg-orange-50"
+                  className="flex active:scale-95 cursor-pointer h-13 min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-orange-500 bg-white px-4 py-3 text-sm font-bold text-orange-600 transition hover:bg-orange-50"
                 >
                   <FiShoppingBag size={18} />
                   Add to Cart
@@ -759,7 +759,7 @@ const handleBuyNow = async () => {
 
                 <button
                   onClick={handleBuyNow}
-                  className="flex min-h-12 items-center justify-center rounded-xl bg-orange-500 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-orange-100 transition hover:bg-orange-600"
+                  className="flex min-h-12 active:scale-95 cursor-pointer items-center justify-center rounded-xl bg-orange-500 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-orange-100 transition hover:bg-orange-600"
                 >
                   Buy Now
                 </button>
