@@ -31,9 +31,10 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = "https://backend-advance-2.onrender.com/api/auth/google";
-  };
+ const handleGoogleLogin = () => {
+  window.location.href =
+    "https://backend-advance-2.onrender.com/api/auth/google";
+};
 
   return (
     <div className="min-h-screen bg-[#f5f3ef] flex items-center justify-center px-4 py-8 relative overflow-hidden">
