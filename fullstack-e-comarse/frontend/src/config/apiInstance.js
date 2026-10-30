@@ -3,7 +3,7 @@ import { store } from "../app/store";
 import { setAccessToken } from "../features/auth/state/authSlice";
 
 const apiInstance = axios.create({
-  baseURL: "http://localhost:5173/api",
+  baseURL: "https://backend-advance-2.onrender.com/api",
   withCredentials: true,
 });
 
@@ -23,7 +23,7 @@ apiInstance.interceptors.response.use(
     async (error) => {
         if (error.response && error.response.status === 401) {
             const res = await axios.post(
-                "http://localhost:5173/api/auth/refresh",
+                "https://backend-advance-2.onrender.com/api/auth/refresh",
                 {},
                 {
                     withCredentials: true,
