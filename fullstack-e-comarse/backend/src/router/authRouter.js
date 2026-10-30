@@ -1,54 +1,84 @@
-import {Router} from 'express'
-import { loginValidator, registerValidator } from '../validator/auth.validator.js'
-import { authLoginController, authRefreshController, authRegisterController,authMeController, authLogoutController } from '../controllers/authControllers.js'
-import { authenticate } from '../middleware/auth.middleware.js'
-import passport from '../config/passport.js'
-import jwt from 'jsonwebtoken'
-import { config } from '../config/config.js'
 
-const router=Router()
+import { Router } from "express";
 
-router.post("/register",registerValidator,authRegisterController)
-router.post("/login",loginValidator,authLoginController)
-router.post("/refresh",authRefreshController)
-router.get("/me",authenticate,authMeController)
-router.post("/logout",authenticate,authLogoutController)
+import {
+  loginValidator,
+  registerValidator,
+} from "../validator/auth.validator.js";
 
+import {
+  authLoginController,
+  authRefreshController,
+  authRegisterController,
+  authMeController,
+  authLogoutController,
+} from "../controllers/authControllers.js";
 
+import { authenticate } from "../middleware/auth.middleware.js";
+import passport from "../config/passport.js";
+import jwt from "jsonwebtoken";
+import { config } from "../config/config.js";
 
-//google route
+const router = Router();
 
-router.get("/google",passport.authenticate("google",{
-    scope:["profile","email"],
-    session:false,
-    prompt:"select_account"
-}))
+// Normal authentication routes
 
+router.post("/register", registerValidator, authRegisterController);
+router.post("/login", loginValidator, authLoginController);
+router.post("/refresh", authRefreshController);
+router.get("/me", authenticate, authMeController);
+router.post("/logout", authenticate, authLogoutController);
 
-router.get("/google/callback",passport.authenticate("google",{
-    session:false,
-    failureRedirect:"http://localhost:5173/login"
-}),
-  (req,res)=>{
+// Google OAuth route
+
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+    prompt: "select_account",
+  })
+);
+
+// Google OAuth callback route
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "https://backend-advance.vercel.app/login",
+  }),
+  (req, res) => {
     try {
-        const accessToken=jwt.sign({userId:req.user._id},config.ACCEESS_TOKEN,{expiresIn:"15m"})
-        const user={
-            _id:req.user._id,
-            name:req.user.name,
-            email:req.user.email
-        }
+      const accessToken = jwt.sign(
+        { userId: req.user._id },
+        config.ACCEESS_TOKEN,
+        { expiresIn: "15m" }
+      );
 
-        const params=new URLSearchParams({
-            accessToken,
-            user:JSON.stringify(user)
-        })
+      const user = {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+      };
 
-        res.redirect(`http://localhost:5173/google/callback?${params.toString()}`)
-        
+      const params = new URLSearchParams({
+        accessToken,
+        user: JSON.stringify(user),
+      });
+
+      // Redirect to deployed frontend
+
+      res.redirect(
+        `https://backend-advance.vercel.app/google/callback?${params.toString()}`
+      );
+
     } catch (error) {
-        res.redirect("http://localhost:5173/login")
+      console.error("Google OAuth callback error:", error);
+
+      res.redirect("https://backend-advance.vercel.app/login");
     }
   }
-)
+);
 
-export default router
+export default router;
