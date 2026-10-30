@@ -5,7 +5,16 @@ import messageModel from "../modules/message.module.js";
 
 const initializeServer = (httpServer) => {
   
-  const io = new Server(httpServer);
+   const io = new Server(httpServer, {
+    cors: {
+      origin: [
+        "http://localhost:5173",
+        "https://backend-advance.vercel.app"
+      ],
+      methods: ["GET", "POST"],
+      credentials: true
+    }
+  });
 
   // Verify access token
   io.use((socket, next) => {
