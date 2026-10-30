@@ -350,7 +350,7 @@ const Register = () => {
 
               {/* ROLE */}
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold text-[#344054] mb-2">
                   Role
                 </label>
@@ -375,7 +375,7 @@ const Register = () => {
                     {errors.role.message}
                   </p>
                 )}
-              </div>
+              </div> */}
 
               {/* PASSWORD */}
 
