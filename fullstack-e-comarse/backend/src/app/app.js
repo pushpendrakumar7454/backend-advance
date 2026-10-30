@@ -13,7 +13,11 @@ const app = express();
 // CORS configuration
 app.use(
   cors({
-    origin: "https://backend-advance.vercel.app/",
+  
+    origin: [
+      "http://localhost:5173",
+      "https://backend-advance.vercel.app"
+    ],
     credentials: true,
   })
 );
