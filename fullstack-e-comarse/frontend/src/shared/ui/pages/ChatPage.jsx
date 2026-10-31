@@ -1,15 +1,14 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import axios from "axios";
 
 const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5001/api";
+  import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL ||
-  "http://localhost:5001";
+  import.meta.env.VITE_SOCKET_URL || "http://localhost:5001";
 
 const apiInstance = axios.create({
   baseURL: API_URL,
@@ -27,24 +26,24 @@ const ChatPage = () => {
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  const { accessToken, users } = useSelector(
-    (state) => state.auth
-  );
+  const auth = useSelector((state) => state.auth);
 
-  // Redux mein user object ka structure handle karo
-  const currentUser = users?.user || users || {};
+  const accessToken = auth?.accessToken;
+
+  const currentUser =
+    auth?.user || auth?.users?.user || auth?.users || {};
 
   const currentUserId =
     currentUser?.userId ||
     currentUser?._id ||
     currentUser?.id;
 
-  // Format database aur socket messages
+  // Format database and socket messages
   const formatMessage = (msg) => {
     const senderId =
       msg.senderId?._id ||
       msg.senderId ||
-      msg.sender?. _id ||
+      msg.sender?._id ||
       "";
 
     return {
@@ -135,30 +134,28 @@ const ChatPage = () => {
 
     socket.on("connect", () => {
       console.log("Socket connected:", socket.id);
-
       setConnected(true);
       setSocketError("");
     });
 
     socket.on("connect_error", (error) => {
       console.error("Socket connection error:", error.message);
-
       setConnected(false);
-      setSocketError(
-        error.message || "Unable to connect to chat."
-      );
+      setSocketError(error.message || "Unable to connect to chat.");
     });
 
-    // Receive messages from server
     const handleMessage = (msg) => {
       const newMessage = formatMessage(msg);
 
       setMessages((previousMessages) => {
         const alreadyExists = previousMessages.some(
-          (item) => item._id === newMessage._id
+          (item) =>
+            item._id &&
+            newMessage._id &&
+            item._id === newMessage._id
         );
 
-        if (newMessage._id && alreadyExists) {
+        if (alreadyExists) {
           return previousMessages;
         }
 
@@ -291,7 +288,6 @@ const ChatPage = () => {
               <h2 className="text-xl font-bold text-gray-900">
                 Messages
               </h2>
-
               <p className="mt-1 text-sm text-gray-500">
                 Stay connected with your people.
               </p>
@@ -307,7 +303,6 @@ const ChatPage = () => {
                   <p className="text-sm font-bold text-gray-900">
                     Nexora Support
                   </p>
-
                   <p className="mt-1 text-xs text-gray-500">
                     Your conversations
                   </p>
@@ -322,7 +317,6 @@ const ChatPage = () => {
                 <h2 className="text-sm font-bold text-gray-900 sm:text-base">
                   Nexora Support
                 </h2>
-
                 <p className="mt-1 text-xs text-gray-500">
                   {connected ? "Connected to chat" : "Connecting..."}
                 </p>
@@ -361,9 +355,7 @@ const ChatPage = () => {
                   <div
                     key={item._id || index}
                     className={`flex w-full items-end gap-2 ${
-                      item.outgoing
-                        ? "justify-end"
-                        : "justify-start"
+                      item.outgoing ? "justify-end" : "justify-start"
                     }`}
                   >
                     {!item.outgoing && (
@@ -374,9 +366,7 @@ const ChatPage = () => {
 
                     <div
                       className={`flex max-w-[80%] flex-col ${
-                        item.outgoing
-                          ? "items-end"
-                          : "items-start"
+                        item.outgoing ? "items-end" : "items-start"
                       }`}
                     >
                       <div
@@ -393,22 +383,20 @@ const ChatPage = () => {
 
                       <span className="mt-1 px-1 text-[11px] text-gray-400">
                         {item.outgoing ? "You" : "Nexora"}
-
                         {item.createdAt &&
-                          ` · ${new Date(
-                            item.createdAt
-                          ).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}`}
+                          ` · ${new Date(item.createdAt).toLocaleTimeString(
+                            [],
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}`}
                       </span>
                     </div>
 
                     {item.outgoing && (
                       <div className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-600">
-                        {currentUser?.name
-                          ?.charAt(0)
-                          ?.toUpperCase() || "U"}
+                        {currentUser?.name?.charAt(0)?.toUpperCase() || "U"}
                       </div>
                     )}
                   </div>
@@ -445,9 +433,7 @@ const ChatPage = () => {
 
                 <button
                   type="submit"
-                  disabled={
-                    !inputValue.trim() || !connected || sending
-                  }
+                  disabled={!inputValue.trim() || !connected || sending}
                   className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
                 >
                   {sending ? "Sending..." : "Send"}

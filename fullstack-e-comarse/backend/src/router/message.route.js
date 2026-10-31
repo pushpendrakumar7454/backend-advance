@@ -1,14 +1,16 @@
 import express from "express";
 import messageModel from "../modules/message.module.js";
+import { authenticate } from "../middleware/auth.middleware.js";
+
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-  
+router.get("/", authenticate, async (req, res) => {
   try {
     const messages = await messageModel
       .find()
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 })
+      .lean();
 
     return res.status(200).json({
       success: true,

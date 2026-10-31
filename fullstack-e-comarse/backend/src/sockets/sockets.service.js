@@ -1,26 +1,32 @@
+
 import { Server } from "socket.io";
 import { readAccessToken } from "../utils/auth.js";
 import messageModel from "../modules/message.module.js";
 
 const initializeServer = (httpServer) => {
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://backend-advance.vercel.app",
+  ];
+
   const io = new Server(httpServer, {
     cors: {
-      origin: [
-        "http://localhost:5173",
-        "https://backend-advance.vercel.app",
-      ],
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
       credentials: true,
     },
   });
 
-  // Authenticate socket connection
+  // Socket authentication
   io.use((socket, next) => {
     try {
-      const token =
-        socket.handshake.auth?.token ||
-        socket.handshake.headers?.authorization
-          ?.replace("Bearer ", "");
+      const authorization =
+        socket.handshake.headers?.authorization ||
+        socket.handshake.auth?.token;
+
+      const token = authorization?.startsWith("Bearer ")
+        ? authorization.split(" ")[1]
+        : authorization;
 
       if (!token) {
         return next(new Error("Authentication required"));
@@ -29,9 +35,7 @@ const initializeServer = (httpServer) => {
       const decoded = readAccessToken(token);
 
       const userId =
-        decoded.userId ||
-        decoded.id ||
-        decoded._id;
+        decoded.userId || decoded.id || decoded._id;
 
       if (!userId) {
         return next(new Error("Invalid token payload"));
@@ -45,7 +49,6 @@ const initializeServer = (httpServer) => {
       next();
     } catch (error) {
       console.error("Socket authentication error:", error.message);
-
       next(new Error("Invalid or expired access token"));
     }
   });
@@ -57,21 +60,15 @@ const initializeServer = (httpServer) => {
     socket.on("message", async (data, callback) => {
       try {
         const text =
-          typeof data === "string"
-            ? data
-            : data?.message;
+          typeof data === "string" ? data : data?.message;
 
-        if (
-          typeof text !== "string" ||
-          !text.trim()
-        ) {
+        if (typeof text !== "string" || !text.trim()) {
           return callback?.({
             success: false,
             message: "Message cannot be empty",
           });
         }
 
-        // Save message in MongoDB
         const savedMessage = await messageModel.create({
           senderId: socket.user.userId,
           message: text.trim(),
@@ -80,7 +77,6 @@ const initializeServer = (httpServer) => {
         // Broadcast saved message to all connected clients
         io.emit("message", savedMessage);
 
-        // Send acknowledgement to sender
         return callback?.({
           success: true,
           message: "Message saved successfully",
