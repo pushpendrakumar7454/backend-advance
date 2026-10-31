@@ -34,6 +34,7 @@ export const logOutUser=async()=>{
         const res=await apiInstance.post("/auth/logout")
         return res.data
     } catch (error) {
-        console.log(error)
+       console.log("Hydrate Error:", error.response?.data || error.message);
+    throw error;
     }
 }
