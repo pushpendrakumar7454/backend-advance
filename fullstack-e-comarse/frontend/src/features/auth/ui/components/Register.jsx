@@ -29,7 +29,7 @@ const Register = () => {
   };
 
   const handleGoogleLogin=()=>{
-    window.location.href='http://localhost:3000/api/auth/google'
+     "https://backend-advance-2.onrender.com/api/auth/google"
   }
 
   return (
