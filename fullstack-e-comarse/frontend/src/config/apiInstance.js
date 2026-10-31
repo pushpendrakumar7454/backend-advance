@@ -1,16 +1,12 @@
-
 import axios from "axios";
 import { store } from "../app/store";
 import { setAccessToken } from "../features/auth/state/authSlice";
 
-const BASE_URL = "https://backend-advance-2.onrender.com/api";
-
 const apiInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: "https://backend-advance-2.onrender.com/api",
   withCredentials: true,
 });
 
-// Request interceptor
 apiInstance.interceptors.request.use((config) => {
   const accessToken = store.getState().auth.accessToken;
 
@@ -21,46 +17,27 @@ apiInstance.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor
+
 apiInstance.interceptors.response.use(
-  (response) => response,
+    (response) => response,
+    async (error) => {
+        if (error.response && error.response.status === 401) {
+            const res = await axios.post(
+                "https://backend-advance-2.onrender.com/api/auth/refresh",
+                {},
+                {
+                    withCredentials: true,
+                }
+            );
+            store.dispatch(
+                setAccessToken(res.data.accessToken)
+            );
+            error.config.headers.Authorization = `Bearer ${res.data.accessToken}`;
+            return apiInstance(error.config);
+        }
 
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (
-      error.response?.status === 401 &&
-      originalRequest &&
-      !originalRequest._retry &&
-      !originalRequest.url?.includes("/auth/refresh")
-    ) {
-      originalRequest._retry = true;
-
-      try {
-        const res = await axios.post(
-          `${BASE_URL}/auth/refresh`,
-          {},
-          {
-            withCredentials: true,
-          }
-        );
-
-        const newAccessToken = res.data.accessToken;
-
-        store.dispatch(setAccessToken(newAccessToken));
-
-        originalRequest.headers.Authorization =
-          `Bearer ${newAccessToken}`;
-
-        return apiInstance(originalRequest);
-      } catch (refreshError) {
-        store.dispatch(setAccessToken(null));
-        return Promise.reject(refreshError);
-      }
+        return Promise.reject(error);
     }
-
-    return Promise.reject(error);
-  }
 );
 
-export default apiInstance;
+export default apiInstance
