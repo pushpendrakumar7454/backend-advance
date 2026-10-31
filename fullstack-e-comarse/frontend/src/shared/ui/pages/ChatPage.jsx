@@ -22,6 +22,7 @@ const ChatPage = () => {
 
   const currentUserId = user?.userId || user?._id || user?.id;
 
+
   // Format database and socket messages
   const formatMessage = (msg) => {
     const senderId = msg.senderId?._id || msg.senderId || msg.sender?._id || "";

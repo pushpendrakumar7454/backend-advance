@@ -3,9 +3,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { config } from "./config.js";
 import authModel from "../modules/auth.module.js";
 
-console.log("Google Callback URL:", config.GOOGLE_CALLBACK_URL);
-console.log("Google Client ID:", config.GOOGLE_CLIENT_ID);
-console.log("Google Callback URL:", config.GOOGLE_CALLBACK_URL);
+
 
 passport.use(
   
