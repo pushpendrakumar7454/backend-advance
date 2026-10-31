@@ -1,47 +1,55 @@
-
 import { Server } from "socket.io";
 import { readAccessToken } from "../utils/auth.js";
 import messageModel from "../modules/message.module.js";
 
 const initializeServer = (httpServer) => {
-  
-   const io = new Server(httpServer, {
+  const io = new Server(httpServer, {
     cors: {
       origin: [
         "http://localhost:5173",
-        "https://backend-advance.vercel.app"
+        "https://backend-advance.vercel.app",
       ],
       methods: ["GET", "POST"],
-      credentials: true
-    }
+      credentials: true,
+    },
   });
 
-  // Verify access token
+  // Authenticate socket connection
   io.use((socket, next) => {
-    const authorization =
-      socket.handshake.headers?.authorization ||
-      socket.handshake.auth?.token;
-
-    const token = authorization?.startsWith("Bearer ")
-      ? authorization.split(" ")[1]
-      : authorization;
-
-    if (!token) {
-      return next(new Error("Authentication required"));
-    }
-
     try {
+      const token =
+        socket.handshake.auth?.token ||
+        socket.handshake.headers?.authorization
+          ?.replace("Bearer ", "");
+
+      if (!token) {
+        return next(new Error("Authentication required"));
+      }
+
       const decoded = readAccessToken(token);
 
-      socket.user = decoded;
+      const userId =
+        decoded.userId ||
+        decoded.id ||
+        decoded._id;
+
+      if (!userId) {
+        return next(new Error("Invalid token payload"));
+      }
+
+      socket.user = {
+        userId: String(userId),
+        role: decoded.role,
+      };
 
       next();
     } catch (error) {
+      console.error("Socket authentication error:", error.message);
+
       next(new Error("Invalid or expired access token"));
     }
   });
 
-  // Connection event
   io.on("connection", (socket) => {
     console.log("User connected:", socket.user.userId);
 
@@ -49,9 +57,14 @@ const initializeServer = (httpServer) => {
     socket.on("message", async (data, callback) => {
       try {
         const text =
-          typeof data === "string" ? data : data?.message;
+          typeof data === "string"
+            ? data
+            : data?.message;
 
-        if (typeof text !== "string" || !text.trim()) {
+        if (
+          typeof text !== "string" ||
+          !text.trim()
+        ) {
           return callback?.({
             success: false,
             message: "Message cannot be empty",
@@ -64,10 +77,11 @@ const initializeServer = (httpServer) => {
           message: text.trim(),
         });
 
-        // Send saved message to connected clients
+        // Broadcast saved message to all connected clients
         io.emit("message", savedMessage);
 
-        callback?.({
+        // Send acknowledgement to sender
+        return callback?.({
           success: true,
           message: "Message saved successfully",
           data: savedMessage,
@@ -75,15 +89,19 @@ const initializeServer = (httpServer) => {
       } catch (error) {
         console.error("Message save error:", error);
 
-        callback?.({
+        return callback?.({
           success: false,
           message: "Unable to save message",
         });
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("User disconnected:", socket.user.userId);
+    socket.on("disconnect", (reason) => {
+      console.log(
+        "User disconnected:",
+        socket.user.userId,
+        reason
+      );
     });
   });
 

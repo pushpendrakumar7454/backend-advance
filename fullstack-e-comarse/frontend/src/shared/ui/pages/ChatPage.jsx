@@ -1,15 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import axios from "axios";
 
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5001/api";
+
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  "http://localhost:5001";
+
 const apiInstance = axios.create({
-  baseURL: "/api",
+  baseURL: API_URL,
+  withCredentials: true,
 });
 
 const ChatPage = () => {
-  const [inpurValues, setinpurValues] = useState("");
-  const [massage, setMassage] = useState([]);
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState([]);
   const [connected, setConnected] = useState(false);
   const [sending, setSending] = useState(false);
   const [socketError, setSocketError] = useState("");
@@ -18,26 +27,41 @@ const ChatPage = () => {
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  const { accessToken, users } = useSelector((state) => state.auth);
+  const { accessToken, users } = useSelector(
+    (state) => state.auth
+  );
 
-  const currentUserId = users?.userId || users?._id || users?.id;
+  // Redux mein user object ka structure handle karo
+  const currentUser = users?.user || users || {};
 
+  const currentUserId =
+    currentUser?.userId ||
+    currentUser?._id ||
+    currentUser?.id;
 
-  // Format database and socket messages
+  // Format database aur socket messages
   const formatMessage = (msg) => {
-    const senderId = msg.senderId?._id || msg.senderId || msg.sender?._id || "";
+    const senderId =
+      msg.senderId?._id ||
+      msg.senderId ||
+      msg.sender?. _id ||
+      "";
 
     return {
       ...msg,
+      _id: String(msg._id || ""),
       senderId: String(senderId),
       content: msg.message || msg.content || "",
       outgoing:
-        currentUserId != null && String(senderId) === String(currentUserId),
+        currentUserId != null &&
+        String(senderId) === String(currentUserId),
     };
   };
 
-  // Fetch old messages after refresh
+  // Fetch previous messages
   useEffect(() => {
+    let active = true;
+
     const fetchMessages = async () => {
       if (!accessToken) {
         setLoadingMessages(false);
@@ -46,70 +70,95 @@ const ChatPage = () => {
       }
 
       try {
+        setLoadingMessages(true);
+
         const response = await apiInstance.get("/messages", {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         });
 
-        const oldMessages = response.data.messages || response.data.data || [];
+        const oldMessages =
+          response.data.messages ||
+          response.data.data ||
+          [];
 
-        setMassage(oldMessages.map(formatMessage));
-        setSocketError("");
+        if (active) {
+          setMessages(oldMessages.map(formatMessage));
+          setSocketError("");
+        }
       } catch (error) {
         console.error(
           "Fetch messages error:",
-          error.response?.data || error.message,
+          error.response?.data || error.message
         );
 
-        setSocketError(
-          error.response?.data?.message || "Unable to load previous messages.",
-        );
+        if (active) {
+          setSocketError(
+            error.response?.data?.message ||
+              "Unable to load previous messages."
+          );
+        }
       } finally {
-        setLoadingMessages(false);
+        if (active) {
+          setLoadingMessages(false);
+        }
       }
     };
 
     fetchMessages();
+
+    return () => {
+      active = false;
+    };
   }, [accessToken, currentUserId]);
 
-  // Connect Socket.IO through Vite proxy
+  // Socket connection
   useEffect(() => {
     if (!accessToken) {
       setConnected(false);
       return;
     }
 
-    const socket = io({
+    const socket = io(SOCKET_URL, {
       path: "/socket.io",
       auth: {
         token: accessToken,
       },
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     socketRef.current = socket;
 
     socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+
       setConnected(true);
       setSocketError("");
-      console.log("Socket connected:", socket.id);
     });
 
     socket.on("connect_error", (error) => {
-      setConnected(false);
-      setSocketError(error.message || "Unable to connect to chat.");
+      console.error("Socket connection error:", error.message);
 
-      console.error("Socket error:", error.message);
+      setConnected(false);
+      setSocketError(
+        error.message || "Unable to connect to chat."
+      );
     });
 
+    // Receive messages from server
     const handleMessage = (msg) => {
       const newMessage = formatMessage(msg);
 
-      setMassage((previousMessages) => {
-        if (
-          newMessage._id &&
-          previousMessages.some((item) => item._id === newMessage._id)
-        ) {
+      setMessages((previousMessages) => {
+        const alreadyExists = previousMessages.some(
+          (item) => item._id === newMessage._id
+        );
+
+        if (newMessage._id && alreadyExists) {
           return previousMessages;
         }
 
@@ -119,7 +168,8 @@ const ChatPage = () => {
 
     socket.on("message", handleMessage);
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
       setConnected(false);
     });
 
@@ -128,24 +178,25 @@ const ChatPage = () => {
       socket.off("connect_error");
       socket.off("message", handleMessage);
       socket.off("disconnect");
+
       socket.disconnect();
       socketRef.current = null;
     };
   }, [accessToken, currentUserId]);
 
-  // Scroll to the latest message
+  // Scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "end",
     });
-  }, [massage]);
+  }, [messages]);
 
   // Send message
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const text = inpurValues.trim();
+    const text = inputValue.trim();
     const socket = socketRef.current;
 
     if (!text || !socket?.connected || sending) {
@@ -154,17 +205,28 @@ const ChatPage = () => {
 
     setSending(true);
 
-    socket.emit("message", { message: text }, (response) => {
-      setSending(false);
+    socket.timeout(10000).emit(
+      "message",
+      { message: text },
+      (error, response) => {
+        setSending(false);
 
-      if (!response?.success) {
-        setSocketError(response?.message || "Message could not be saved.");
-        return;
+        if (error) {
+          setSocketError("Server did not respond. Try again.");
+          return;
+        }
+
+        if (!response?.success) {
+          setSocketError(
+            response?.message || "Message could not be saved."
+          );
+          return;
+        }
+
+        setInputValue("");
+        setSocketError("");
       }
-
-      setinpurValues("");
-      setSocketError("");
-    });
+    );
   };
 
   return (
@@ -178,7 +240,8 @@ const ChatPage = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.8">
+                strokeWidth="1.8"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -202,16 +265,19 @@ const ChatPage = () => {
               connected
                 ? "border-green-100 bg-green-50"
                 : "border-red-100 bg-red-50"
-            }`}>
+            }`}
+          >
             <span
               className={`h-2 w-2 rounded-full ${
                 connected ? "bg-green-500" : "bg-red-500"
               }`}
             />
+
             <span
               className={`text-xs font-semibold ${
                 connected ? "text-green-700" : "text-red-600"
-              }`}>
+              }`}
+            >
               {connected ? "Online" : "Offline"}
             </span>
           </div>
@@ -222,7 +288,10 @@ const ChatPage = () => {
         <div className="grid min-h-[calc(100dvh-7.5rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="hidden border-r border-gray-100 lg:block">
             <div className="border-b border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-900">Messages</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                Messages
+              </h2>
+
               <p className="mt-1 text-sm text-gray-500">
                 Stay connected with your people.
               </p>
@@ -238,6 +307,7 @@ const ChatPage = () => {
                   <p className="text-sm font-bold text-gray-900">
                     Nexora Support
                   </p>
+
                   <p className="mt-1 text-xs text-gray-500">
                     Your conversations
                   </p>
@@ -252,13 +322,14 @@ const ChatPage = () => {
                 <h2 className="text-sm font-bold text-gray-900 sm:text-base">
                   Nexora Support
                 </h2>
+
                 <p className="mt-1 text-xs text-gray-500">
                   {connected ? "Connected to chat" : "Connecting..."}
                 </p>
               </div>
 
               <span className="rounded-lg bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-600">
-                {massage.length} messages
+                {messages.length} messages
               </span>
             </header>
 
@@ -269,7 +340,7 @@ const ChatPage = () => {
                 </p>
               )}
 
-              {!loadingMessages && massage.length === 0 && (
+              {!loadingMessages && messages.length === 0 && (
                 <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 text-3xl">
                     💬
@@ -286,30 +357,35 @@ const ChatPage = () => {
               )}
 
               <div className="flex flex-col gap-4">
-                {massage.map((item) => (
+                {messages.map((item, index) => (
                   <div
-                    key={item._id}
+                    key={item._id || index}
                     className={`flex w-full items-end gap-2 ${
-                      item.outgoing ? "justify-end" : "justify-start"
-                    }`}>
-                    {/* Incoming message ka avatar left side */}
+                      item.outgoing
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
                     {!item.outgoing && (
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-600">
                         N
                       </div>
                     )}
 
-                    {/* Message bubble */}
                     <div
                       className={`flex max-w-[80%] flex-col ${
-                        item.outgoing ? "items-end" : "items-start"
-                      }`}>
+                        item.outgoing
+                          ? "items-end"
+                          : "items-start"
+                      }`}
+                    >
                       <div
                         className={`rounded-2xl px-4 py-3 text-sm leading-6 sm:px-5 ${
                           item.outgoing
                             ? "rounded-br-sm bg-orange-500 text-white"
                             : "rounded-bl-sm border border-gray-200 bg-gray-50 text-gray-800"
-                        }`}>
+                        }`}
+                      >
                         <p className="whitespace-pre-wrap break-words">
                           {item.content}
                         </p>
@@ -317,21 +393,22 @@ const ChatPage = () => {
 
                       <span className="mt-1 px-1 text-[11px] text-gray-400">
                         {item.outgoing ? "You" : "Nexora"}
+
                         {item.createdAt &&
-                          ` · ${new Date(item.createdAt).toLocaleTimeString(
-                            [],
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            },
-                          )}`}
+                          ` · ${new Date(
+                            item.createdAt
+                          ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}`}
                       </span>
                     </div>
 
-                    {/* Outgoing message ka avatar right side */}
                     {item.outgoing && (
                       <div className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-600">
-                        {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                        {currentUser?.name
+                          ?.charAt(0)
+                          ?.toUpperCase() || "U"}
                       </div>
                     )}
                   </div>
@@ -350,10 +427,11 @@ const ChatPage = () => {
             <footer className="border-t border-gray-100 bg-white p-3 sm:px-6 sm:py-5">
               <form
                 onSubmit={handleSubmit}
-                className="flex items-center gap-2 rounded-2xl border border-gray-200 p-2 focus-within:border-orange-400 focus-within:ring-4 focus-within:ring-orange-50">
+                className="flex items-center gap-2 rounded-2xl border border-gray-200 p-2 focus-within:border-orange-400 focus-within:ring-4 focus-within:ring-orange-50"
+              >
                 <input
-                  value={inpurValues}
-                  onChange={(e) => setinpurValues(e.target.value)}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
                   type="text"
                   placeholder={
                     connected
@@ -367,8 +445,11 @@ const ChatPage = () => {
 
                 <button
                   type="submit"
-                  disabled={!inpurValues.trim() || !connected || sending}
-                  className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300">
+                  disabled={
+                    !inputValue.trim() || !connected || sending
+                  }
+                  className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+                >
                   {sending ? "Sending..." : "Send"}
                 </button>
               </form>
