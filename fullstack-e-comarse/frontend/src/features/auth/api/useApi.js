@@ -20,26 +20,20 @@ export const loginUser=async(crenticial)=>{
 
 }
 
-// export const hydreadUser=async()=>{
-//     try {
-//         const res=await apiInstance.get("/auth/me")
-//         return res
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
-
-export const hydreadUser = async () => {
+export const hydreadUser=async()=>{
     try {
-        const res = await apiInstance.get("/auth/me");
-        console.log(res)
-        return res;
+        const res=await apiInstance.get("/auth/me")
+        return res.data
     } catch (error) {
-        console.log(
-            "Hydrate Error:",
-            error.response?.data || error.message
-        );
-
-        throw error;
+        console.log(error)
     }
-};
+}
+
+export const logOutUser=async()=>{
+    try {
+        const res=await apiInstance.post("/auth/logout")
+        return res.data
+    } catch (error) {
+        console.log(error)
+    }
+}
