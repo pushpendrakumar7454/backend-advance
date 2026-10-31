@@ -55,12 +55,11 @@ router.get(
   }),
   async (req, res) => {
     try {
-      console.log("Google callback executed");
+   
 
       const user = req.user;
 
-      console.log("User found:", !!user);
-      console.log("User ID:", user?._id);
+   
 
       if (!user) {
         return res.status(401).json({
@@ -78,8 +77,7 @@ router.get(
         role: user.role,
       });
 
-      console.log("Access token generated:", !!accessToken);
-      console.log("Refresh token generated:", !!refreshToken);
+
 
       user.refreshToken = refreshToken;
 
