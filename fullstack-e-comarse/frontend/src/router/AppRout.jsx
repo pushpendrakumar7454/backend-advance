@@ -1,4 +1,3 @@
-
 import { createBrowserRouter, RouterProvider } from "react-router";
 import Register from "../features/auth/ui/components/Register";
 import Login from "../features/auth/ui/components/Login";
@@ -23,130 +22,117 @@ import ChatPage from "../shared/ui/pages/ChatPage";
 import Order from "../shared/ui/components/Order";
 
 const AppRout = () => {
+  const dispatch = useDispatch();
 
-    const dispatch = useDispatch();
+  // Check logged-in user
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const res = await hydreadUser();
 
-    // Check logged-in user
-    useEffect(() => {
+        dispatch(addUser(res.data.user));
+      } catch (error) {
+        console.log("User not logged in:", error);
 
-        const checkUser = async () => {
+        dispatch(addUser(null));
+      } finally {
+        dispatch(setAuthLoading(false));
+      }
+    };
 
-            try {
+    checkUser();
+  }, [dispatch]);
 
-                const res = await hydreadUser();
+  const router = createBrowserRouter([
+    // Root Route
+    {
+      path: "/",
+      element: <HomeRedirect />,
+    },
 
-                dispatch(addUser(res.data.user));
+    // Protected Routes
+    {
+      element: <ProtectedRoute />,
 
-            } catch (error) {
-
-                console.log("User not logged in:", error);
-
-                dispatch(addUser(null));
-
-            } finally {
-
-                dispatch(setAuthLoading(false));
-
-            }
-        };
-
-        checkUser();
-
-    }, [dispatch]);
-
-    const router = createBrowserRouter([
-
-        // Root Route
+      children: [
+        // User Routes
         {
-            path: "/",
-            element: <HomeRedirect />
+          path: "/user-header",
+          element: <UserLayout />,
+
+          children: [
+            {
+              index: true,
+              element: <Main />,
+            },
+            {
+              path: "product-detail/:id",
+              element: <ProductDetail />,
+            },
+            {
+              path: "cart",
+              element: <Cart />,
+            },
+            {
+              path: "category/:category",
+              element: <CategoryProducts />,
+            },
+            {
+              path: "all-products",
+              element: <AllProducts />,
+            },
+            {
+              path: "about",
+              element: <About />,
+            },
+            {
+              path: "help-chat",
+              element: <ChatPage />,
+            },
+            {
+              path: "order",
+              element: <Order />,
+            },
+          ],
         },
 
-        // Protected Routes
+        // Seller Routes
         {
-            element: <ProtectedRoute />,
+          path: "/seller-header",
+          element: <SellerLayout />,
 
-            children: [
-
-                // User Routes
-                {
-                    path: "/user-header",
-                    element: <UserLayout />,
-
-                    children: [
-                        {
-                            index: true,
-                            element: <Main />
-                        },
-                        {
-                            path: "product-detail/:id",
-                            element: <ProductDetail />
-                        },
-                        {
-                            path: "cart",
-                            element: <Cart />
-                        },
-                        {
-                            path: "category/:category",
-                            element: <CategoryProducts />
-                        },
-                        {
-                            path: "all-products",
-                            element: <AllProducts />
-                        },
-                        {
-                            path: "about",
-                            element: <About />
-                        },
-                        {
-                            path: "help-chat",
-                            element: <ChatPage />
-                        },
-                        {
-                            path: "order",
-                            element: <Order />
-                        }
-                    ]
-                },
-
-                // Seller Routes
-                {
-                    path: "/seller-header",
-                    element: <SellerLayout />,
-
-                    children: [
-                        {
-                            index: true,
-                            element: <HomePage />
-                        }
-                    ]
-                }
-            ]
+          children: [
+            {
+              index: true,
+              element: <HomePage />,
+            },
+          ],
         },
+      ],
+    },
 
-        // Public Routes
+    // Public Routes
+    {
+      element: <PublicProtectedRoute />,
+
+      children: [
         {
-            element: <PublicProtectedRoute />,
+          path: "/login",
+          element: <Login />,
+        },
+        {
+          path: "/register",
+          element: <Register />,
+        },
+        {
+          path: "/google/callback",
+          element: <GoogleCallback />,
+        },
+      ],
+    },
+  ]);
 
-            children: [
-                {
-                    path: "/login",
-                    element: <Login />
-                },
-                {
-                    path: "/register",
-                    element: <Register />
-                },
-                {
-                    path: "/google/callback",
-                    element: <GoogleCallback />
-                }
-            ]
-        }
-
-    ]);
-
-    return <RouterProvider router={router} />;
+  return <RouterProvider router={router} />;
 };
 
 export default AppRout;
