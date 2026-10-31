@@ -18,9 +18,9 @@ const ChatPage = () => {
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  const { accessToken, user } = useSelector((state) => state.auth);
+  const { accessToken, users } = useSelector((state) => state.auth);
 
-  const currentUserId = user?.userId || user?._id || user?.id;
+  const currentUserId = users?.userId || users?._id || users?.id;
 
 
   // Format database and socket messages
