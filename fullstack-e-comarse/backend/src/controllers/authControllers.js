@@ -123,73 +123,81 @@ export const authLoginController = async (req, res) => {
 };
 
 export const authRefreshController = async (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken;
+    try {
+        const refreshToken = req.cookies?.refreshToken;
 
-    if (!refreshToken) {
-      return res.status(401).json({
-        message: "Refresh token not found",
-      });
+        console.log("Cookie received:", !!refreshToken);
+
+        if (!refreshToken) {
+            return res.status(401).json({
+                message: "Refresh token not found",
+            });
+        }
+
+        const decoded = readRefreshToken(refreshToken);
+        const { userId } = decoded;
+
+        const user = await authModel.findById(userId);
+
+        console.log("User found:", !!user);
+        console.log("DB token exists:", !!user?.refreshToken);
+        console.log(
+            "Token matched:",
+            refreshToken === user?.refreshToken
+        );
+
+        if (!user) {
+            return res.status(401).json({
+                message: "User not found",
+            });
+        }
+
+        if (refreshToken !== user.refreshToken) {
+            return res.status(401).json({
+                message: "Refresh token mismatch",
+            });
+        }
+
+        const accessToken = generateAccessToken({
+            userId: user._id,
+            role: user.role,
+        });
+
+        const newRefreshToken = generateRefreshToken({
+            userId: user._id,
+            role: user.role,
+        });
+
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        res.cookie("refreshToken", newRefreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            path: "/",
+        });
+
+        return res.status(200).json({
+            message: "Refresh token rotated",
+            accessToken,
+            data: {
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                },
+            },
+        });
+
+    } catch (error) {
+        console.log("Refresh Error:", error.message);
+
+        return res.status(401).json({
+            message: "Invalid refresh token",
+        });
     }
-
-    const decoded = readRefreshToken(refreshToken);
-
-    const { userId } = decoded;
-
-    const user = await authModel.findById(userId);
-
-    if (!user) {
-      return res.status(401).json({
-        message: "User not found",
-      });
-    }
-
-    if (refreshToken !== user.refreshToken) {
-      return res.status(401).json({
-        message: "Refresh token mismatch",
-      });
-    }
-
-    const accessToken = generateAccessToken({
-      userId: user._id,
-      role: user.role,
-    });
-
-    const newRefreshToken = generateRefreshToken({
-      userId: user._id,
-      role: user.role,
-    });
-
-    await authModel.findByIdAndUpdate(user._id, {
-      refreshToken: newRefreshToken,
-    });
-
-    res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-    });
-
-    return res.status(200).json({
-      message: "Refresh token rotated",
-      accessToken,
-      data: {
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        },
-      },
-    });
-  } catch (error) {
-    console.log("Refresh Error:", error.message);
-
-    return res.status(401).json({
-      message: "Invalid refresh token",
-    });
-  }
 };
 
 export const authMeController = async (req, res) => {
