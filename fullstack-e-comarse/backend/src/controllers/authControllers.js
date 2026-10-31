@@ -120,7 +120,7 @@ export const authRefreshController = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
-    return res.status(401).json({
+    return res.status(400).json({
       message: "refresh token not found",
     });
   }
