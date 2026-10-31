@@ -32,7 +32,7 @@ export const hydreadUser=async()=>{
 export const logOutUser=async()=>{
     try {
         const res=await apiInstance.post("/auth/logout")
-        return res.data
+        return res
     } catch (error) {
        console.log("Hydrate Error:", error.response?.data || error.message);
     throw error;
