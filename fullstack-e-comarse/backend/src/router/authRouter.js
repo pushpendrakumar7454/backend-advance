@@ -55,25 +55,41 @@ router.get(
   }),
   async (req, res) => {
     try {
+      console.log("Google callback executed");
+
       const user = req.user;
 
-      // Generate Access Token
+      console.log("User found:", !!user);
+      console.log("User ID:", user?._id);
+
+      if (!user) {
+        return res.status(401).json({
+          message: "Google user not found",
+        });
+      }
+
       const accessToken = generateAccessToken({
         userId: user._id,
         role: user.role,
       });
 
-      // Generate Refresh Token
       const refreshToken = generateRefreshToken({
         userId: user._id,
         role: user.role,
       });
 
-      // Save Refresh Token in MongoDB
+      console.log("Access token generated:", !!accessToken);
+      console.log("Refresh token generated:", !!refreshToken);
+
       user.refreshToken = refreshToken;
+
       await user.save();
 
-      // Set Refresh Token Cookie
+      console.log(
+        "Refresh token saved in DB:",
+        !!user.refreshToken
+      );
+
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: true,
@@ -81,7 +97,8 @@ router.get(
         path: "/",
       });
 
-      // Redirect to frontend
+      console.log("Refresh cookie set");
+
       const params = new URLSearchParams({
         accessToken,
         user: JSON.stringify({
@@ -97,7 +114,7 @@ router.get(
       );
 
     } catch (error) {
-      console.error("Google OAuth callback error:", error);
+      console.error("GOOGLE CALLBACK ERROR:", error);
 
       return res.redirect(
         "https://backend-advance.vercel.app/login"
