@@ -123,32 +123,30 @@ export const authLoginController = async (req, res) => {
 };
 
 export const authRefreshController = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-
-  if (!refreshToken) {
-    return res.status(400).json({
-      message: "refresh token not found",
-    });
-  }
-
   try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        message: "Refresh token not found",
+      });
+    }
+
     const decoded = readRefreshToken(refreshToken);
 
-    const { userId, role } = decoded;
+    const { userId } = decoded;
 
     const user = await authModel.findById(userId);
 
     if (!user) {
-      return res.status(404).json({
-        message: "user not found",
+      return res.status(401).json({
+        message: "User not found",
       });
     }
 
     if (refreshToken !== user.refreshToken) {
-      await authModel.findByIdAndUpdate(user._id, { refreshToken: null });
-
-      return res.status(400).json({
-        message: "refresh token mismatch",
+      return res.status(401).json({
+        message: "Refresh token mismatch",
       });
     }
 
@@ -162,30 +160,34 @@ export const authRefreshController = async (req, res) => {
       role: user.role,
     });
 
- res.cookie("refreshToken", newRefreshToken, {
-  httpOnly: true,
-  secure: true,
-  sameSite: "none",
-  path: "/",
-});
-
     await authModel.findByIdAndUpdate(user._id, {
       refreshToken: newRefreshToken,
     });
 
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    });
+
     return res.status(200).json({
-      message: "refresh token rotated",
-      data: {
-        name: user.name,
-        email: user.email,
-        id: user._id,
-      },
+      message: "Refresh token rotated",
       accessToken,
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      },
     });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "internal server error",
+    console.log("Refresh Error:", error.message);
+
+    return res.status(401).json({
+      message: "Invalid refresh token",
     });
   }
 };
