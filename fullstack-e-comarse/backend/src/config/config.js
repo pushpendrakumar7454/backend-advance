@@ -11,7 +11,7 @@ export const config = {
 
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_SECRET_ID,
-  GOOGLE_CALLBACK_URL: process.env.CALLBACK_URL,
+  GOOGLE_CALLBACK_URL:  "https://backend-advance-2.onrender.com/api/auth/google/callback",
 
   RAZORPAY_KEY_ID:process.env.RAZORPAY_KEY_ID,
   RAZORPAY_KEY_SECRET:process.env.RAZORPAY_KEY_SECRET
