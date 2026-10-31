@@ -30,9 +30,9 @@ apiInstance.interceptors.response.use(
                 }
             );
             store.dispatch(
-                setAccessToken(res.data.data.accessToken)
+                setAccessToken(res.data.accessToken)
             );
-            error.config.headers.Authorization = `Bearer ${res.data.data.accessToken}`;
+            error.config.headers.Authorization = `Bearer ${res.data.accessToken}`;
             return apiInstance(error.config);
         }
 
