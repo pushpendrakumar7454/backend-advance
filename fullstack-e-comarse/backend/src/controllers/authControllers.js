@@ -36,9 +36,12 @@ export const authRegisterController = async (req, res) => {
       role: user.role,
     });
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-    });
+   res.cookie("refreshToken", refreshToken, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+});
 
     await authModel.findByIdAndUpdate(user._id, { refreshToken });
 
@@ -90,9 +93,12 @@ export const authLoginController = async (req, res) => {
       role: user.role,
     });
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-    });
+   res.cookie("refreshToken", refreshToken, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+});
 
     await authModel.findOneAndUpdate({ email }, { refreshToken });
 
@@ -156,9 +162,12 @@ export const authRefreshController = async (req, res) => {
       role: user.role,
     });
 
-    res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-    });
+ res.cookie("refreshToken", newRefreshToken, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+});
 
     await authModel.findByIdAndUpdate(user._id, {
       refreshToken: newRefreshToken,
