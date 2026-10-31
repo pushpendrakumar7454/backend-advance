@@ -29,12 +29,16 @@ export const hydreadUser=async()=>{
     }
 }
 
-export const logOutUser=async()=>{
+export const hydreadUser = async () => {
     try {
-        const res=await apiInstance.post("/auth/logout")
-        return res
+        const res = await apiInstance.get("/auth/me");
+        return res;
     } catch (error) {
-       console.log("Hydrate Error:", error.response?.data || error.message);
-    throw error;
+        console.log(
+            "Hydrate Error:",
+            error.response?.data || error.message
+        );
+
+        throw error;
     }
-}
+};
