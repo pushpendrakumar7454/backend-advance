@@ -18,7 +18,7 @@ import { authenticate } from "../middleware/auth.middleware.js";
 import passport from "../config/passport.js";
 import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
-
+import {generateAccessToken,generateRefreshToken} from '../utils/auth.js'
 const router = Router();
 
 // Normal authentication routes
@@ -47,44 +47,62 @@ router.get(
 );
 
 // Google OAuth callback route
-
 router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
     failureRedirect: "https://backend-advance.vercel.app/login",
   }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const accessToken = jwt.sign(
-        { userId: req.user._id },
-        config.ACCEESS_TOKEN,
-        { expiresIn: "15m" }
-      );
+      const user = req.user;
 
-      const user = {
-        _id: req.user._id,
-        name: req.user.name,
-        email: req.user.email,
-      };
-
-      const params = new URLSearchParams({
-        accessToken,
-        user: JSON.stringify(user),
+      // Generate Access Token
+      const accessToken = generateAccessToken({
+        userId: user._id,
+        role: user.role,
       });
 
-      // Redirect to deployed frontend
+      // Generate Refresh Token
+      const refreshToken = generateRefreshToken({
+        userId: user._id,
+        role: user.role,
+      });
 
-      res.redirect(
+      // Save Refresh Token in MongoDB
+      user.refreshToken = refreshToken;
+      await user.save();
+
+      // Set Refresh Token Cookie
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+      });
+
+      // Redirect to frontend
+      const params = new URLSearchParams({
+        accessToken,
+        user: JSON.stringify({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        }),
+      });
+
+      return res.redirect(
         `https://backend-advance.vercel.app/google/callback?${params.toString()}`
       );
 
     } catch (error) {
       console.error("Google OAuth callback error:", error);
 
-      res.redirect("https://backend-advance.vercel.app/login");
+      return res.redirect(
+        "https://backend-advance.vercel.app/login"
+      );
     }
   }
 );
-
 export default router;
