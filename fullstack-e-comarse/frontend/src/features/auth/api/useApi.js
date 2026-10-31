@@ -24,7 +24,7 @@ export const hydreadUser=async()=>{
     try {
         const res=await apiInstance.get("/auth/me")
         console.log(res)
-        return res
+        return res.data
     } catch (error) {
         console.log(error)
     }
