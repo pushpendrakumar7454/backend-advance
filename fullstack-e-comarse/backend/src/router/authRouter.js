@@ -28,6 +28,12 @@ router.post("/login", loginValidator, authLoginController);
 router.post("/refresh", authRefreshController);
 router.get("/me", authenticate, authMeController);
 router.post("/logout", authenticate, authLogoutController);
+router.get("/refresh-test", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Refresh route is working",
+  });
+});
 
 // Google OAuth route
 
