@@ -30,7 +30,7 @@ const AppRout = () => {
       try {
         const res = await hydreadUser();
 
-        dispatch(addUser(res.data.data.user));
+        dispatch(addUser(res.data.user));
       } catch (error) {
         console.log("User not logged in:", error);
 

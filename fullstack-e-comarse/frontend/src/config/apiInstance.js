@@ -21,7 +21,7 @@ apiInstance.interceptors.request.use((config) => {
 apiInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
-        if (error.response && error.response.status === 401) {
+        if (error.response && error.response.status === 400) {
             const res = await axios.post(
                 "https://backend-advance-2.onrender.com/api/auth/refresh",
                 {},
