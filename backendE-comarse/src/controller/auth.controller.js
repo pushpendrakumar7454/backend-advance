@@ -1,6 +1,6 @@
 import authModel from "../modules/auth.model.js"
 import bycypt from 'bcryptjs'
-import { generateAccessToken, generateRefreshToken } from "../utils/auth.utils.js"
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/auth.utils.js"
 
 export const authRegisterController=async(req,res)=>{
     try {
@@ -112,11 +112,62 @@ export const authRefreshConteroller=async(req,res)=>{
 
     try {
         
-   
+        const decoded=verifyRefreshToken(refreshToken)
+
+        const {userId,role}=decoded
+
+        const user=await authModel.findById(userId)
+
+           if (!user) {
+           return res.status(404).json({
+             message: "user not found",
+         });
+        }
+
+      if (refreshToken !== user.refreshToken) {
+      await authModel.findByIdAndUpdate(user._id, { refreshToken: null });
+
+      return res.status(400).json({
+        message: "refresh token mismatch",
+      });
+    }
+      const accessToken=generateAccessToken({userId:user._id,role:user.role})
+      const newRefreshToken= generateRefreshToken({userId:user._id,role:user.role})
+        
+       res.cookie("refreshToken",newRefreshToken,{
+        httpOnly:true
+       })
+
+    await authModel.findByIdAndUpdate(user._id,{refreshToken})
+
+     return res.status(200).json({
+        messages:"token roted succefully",
+        data:{
+            accessToken,
+            user:{
+                name:user.name,
+                email:user.email,
+                role:user.role,
+                userId:user._id
+            }
+        }
+    })
+
 
     } catch (error) {
         return res.status(500).json({
             messages:"internal server error"
+        })
+    }
+}
+
+
+export const authMeConteroller=async(req,res)=>{
+    try {
+        
+    } catch (error) {
+        return res.status(500).json({
+            message:'internal server error'
         })
     }
 }
