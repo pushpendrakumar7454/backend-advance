@@ -1,6 +1,7 @@
 import authModel from "../modules/auth.model.js"
 import bycypt from 'bcryptjs'
 import { generateAccessToken, generateRefreshToken } from "../utils/auth.utils.js"
+
 export const authRegisterController=async(req,res)=>{
     try {
         const {name,email,password,number}=req.body
@@ -29,7 +30,7 @@ export const authRegisterController=async(req,res)=>{
 
     await authModel.findByIdAndUpdate(user._id,{refreshToken})
 
-    return re.status(201).json({
+    return res.status(201).json({
         messages:"user register succefully",
         data:{
             accessToken,
@@ -43,6 +44,7 @@ export const authRegisterController=async(req,res)=>{
     })
         
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             messages:"internal server errror"
         })
