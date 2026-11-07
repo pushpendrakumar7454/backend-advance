@@ -5,5 +5,12 @@ const productSchema=new mongoose.Schema({
     description,
     images,
     category,
+    brand,
+    price,
+    sizes,
+    seller,
+    published,
+    createdAt,
     
+
 })
