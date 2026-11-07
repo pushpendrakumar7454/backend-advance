@@ -114,7 +114,7 @@ export const authLoginController = async (req, res) => {
 };
 
 export const authRefreshConteroller = async (req, res) => {
-  const refreshToken = res.cookies.refreshToken;
+  const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
     return res.status(400).json({
       message: "refresh token not found",
@@ -169,6 +169,7 @@ export const authRefreshConteroller = async (req, res) => {
       },
     });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
       messages: "internal server error",
     });
@@ -176,31 +177,40 @@ export const authRefreshConteroller = async (req, res) => {
 };
 
 export const authMeConteroller = async (req, res) => {
-  try {
-    const { userId, role } = req.user;
+    try {
+        const { userId, role } = req.user;
 
-    const user = await authModel.findById(userId);
+        const user = await authModel.findById(userId);
 
-    return res.status(200).json({
-      message: "user find succefully",
-      data: {
-        user: {
-          name: user.name,
-          email: user.email,
-          id: user._id,
-          role: user.role,
-        },
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "internal server error",
-    });
-  }
+        if (!user) {
+            return res.status(404).json({
+                message: "user not found",
+            });
+        }
+
+        return res.status(200).json({
+            message: "user find successfully",
+            data: {
+                user: {
+                    name: user.name,
+                    email: user.email,
+                    id: user._id,
+                    role: user.role,
+                },
+            },
+        });
+
+    } catch (error) {
+        console.log(error);
+
+        return res.status(500).json({
+            message: "internal server error",
+        });
+    }
 };
 
 export const authLogoutController = async (req, res) => {
-  const resfreshToken = req.cookies.refreshToken;
+  const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
     return res.status(400).json({
@@ -235,7 +245,7 @@ export const authLogoutController = async (req, res) => {
         role: user.role,
       },
     });
-    
+
   } catch (error) {
     return res.status(500).json({
       messages: "internal server error",
