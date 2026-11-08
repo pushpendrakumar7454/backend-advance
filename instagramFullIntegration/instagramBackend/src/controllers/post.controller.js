@@ -55,3 +55,44 @@ export const createPostController = async (req, res) => {
     });
   }
 };
+
+
+
+export const findAllPostController=async(req,res)=>{
+    try {
+        
+        const post=await postModel.find()
+
+        return res.status(200).json({
+            message:"find all posts",
+            data:post
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            message:"internal server error"
+        })
+    }
+}
+
+
+export const deletePostController=async(req,res)=>{
+    try {
+        
+        const {id}=req.params
+
+        const post=await postModel.findByIdAndDelete(id)
+
+
+        return res.status(200).json({
+            message:"post deleted succefully",
+            data:post
+        })
+
+
+    } catch (error) {
+        return res.status(500).json({
+            message:"internal server error"
+        })
+    }
+}
