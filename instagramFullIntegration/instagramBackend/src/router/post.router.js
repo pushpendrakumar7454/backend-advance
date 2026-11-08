@@ -1,7 +1,7 @@
 import {Router} from 'express'
 import { authenticate } from '../middleware/user.middleware.js'
 import upload from '../app/config/multer.js'
-import { createPostController, findAllPostController } from '../controllers/post.controller.js'
+import { createPostController, deletePostController, findAllPostController } from '../controllers/post.controller.js'
 import { createPostValidator } from '../validator/post.validator.js'
 
 const router=Router()
@@ -12,5 +12,6 @@ router.post("/create",authenticate,upload.fields([
     ]),createPostValidator,createPostController)
 
 router.get("/find",findAllPostController)    
+router.delete("/delete/:id",authenticate,deletePostController)
 
 export default router
