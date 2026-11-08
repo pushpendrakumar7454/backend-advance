@@ -185,7 +185,7 @@ export const updatePostController = async (req, res) => {
       message: "Post updated successfully",
       data: post,
     });
-    
+
   } catch (error) {
     console.log("Update Post Error:", error);
 
@@ -195,3 +195,23 @@ export const updatePostController = async (req, res) => {
     });
   }
 };
+
+
+export const getOnePostController=async(req,res)=>{
+  try {
+    const {id}=req.params
+
+    const post=await postModel.findById(id)
+
+    return res.status(200).json({
+      message:"product find succefully",
+      data:post
+    })
+
+
+  } catch (error) {
+    return res.status(500).json({
+      message:"internal server error"
+    })
+  }
+}
