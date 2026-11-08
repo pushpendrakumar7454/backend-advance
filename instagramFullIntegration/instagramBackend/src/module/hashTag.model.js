@@ -10,7 +10,7 @@ const hashTagSchema = new mongoose.Schema({
   posts: [
     {
       type: mongoose.Types.Schema.objectId,
-      ref: "",
+      ref: "fullInstagramPostModel",
     },
   ],
 
