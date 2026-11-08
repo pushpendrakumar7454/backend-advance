@@ -11,9 +11,10 @@ const likeSchema=new mongoose.Schema({
         ref:"FullInstagramPostM<odel",
         required:true
     }
-})
+},{timestamps:true})
 
+likeSchema.index({ user: 1, post: 1 }, { unique: true });
 
-const likeModel=mongoose.model("fullInstagramModelLikeMODEL",likeSchema)
+const likeModel = mongoose.model("FullInstagramLIKELikeModel", likeSchema);
 
-export default likeModel
+export default likeModel;
