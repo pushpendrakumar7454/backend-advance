@@ -1,7 +1,7 @@
 import {Router} from 'express'
 import { authenticate } from '../middleware/user.middleware.js'
 import upload from '../app/config/multer.js'
-import { createPostController, deletePostController, findAllPostController, updatePostController } from '../controllers/post.controller.js'
+import { createPostController, deletePostController, findAllPostController, getOnePostController, updatePostController } from '../controllers/post.controller.js'
 import { createPostValidator } from '../validator/post.validator.js'
 
 const router=Router()
@@ -22,5 +22,6 @@ router.put(
     ]),
     updatePostController
 );
+router.get("/findone/:id",authenticate,getOnePostController)
 
 export default router

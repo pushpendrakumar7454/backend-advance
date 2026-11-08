@@ -202,14 +202,23 @@ export const getOnePostController=async(req,res)=>{
     const {id}=req.params
 
     const post=await postModel.findById(id)
+ 
+
+    if(!post){
+      return res.status(401).json({
+        message:"post not found"
+      })
+    }
 
     return res.status(200).json({
+    
       message:"product find succefully",
       data:post
     })
 
 
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
       message:"internal server error"
     })
