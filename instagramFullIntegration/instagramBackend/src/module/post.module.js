@@ -1,86 +1,86 @@
-import mongoose, { mongo } from 'mongoose'
+import mongoose from "mongoose";
 
-const  postSchema=new mongoose.Schema({
-    user:{
-        type:mongoose.Types.ObjectId,
-        ref:"fullIntegretionInstagramusers",
-        required:true
+const postSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "fullIntegretionInstagramusers",
+      required: true,
     },
-    caption:{
-        type:String,
-        trim:true,
-        maxLength:2200
-    },
-    images:[
-        {
-            url:{
-                type:String,
-                required:true
-            },
-           fieldId:{
-            type:String
-           }
-        }
-    ],
 
-    videos:[
-        {
-            url:{
-                type:String,
-
-            },
-            fieldId:{
-                type:String
-            }
-        }
-    ],
-    song:{
-        type:mongoose.Types.ObjectId,
-        ref:"",
-        default:null
+    caption: {
+      type: String,
+      trim: true,
+      maxlength: 2200,
     },
-    songStartTime:{
-        type:Number,
-        default:0
-    },
-    hashTags:[
-        {
-            type:mongoose.Types.ObjectId,
-            ref:"",
 
-        }
-    ],
-    location:{
-        name:{
-            type:String,
-            trim:true
+    images: [
+      {
+        url: {
+          type: String,
+          required: true,
         },
-        latitude:{
-            type:Number
-        },
-        longitude:{
-            type:Number
-        }
-    },
-    likeCount:{
-        type:Number,
-        default:0
-    },
-    commentCount:{
-        type:Number,
-        default:0
-    },
-    isArchived:{
+        fileId: String,
+      },
+    ],
 
-        type:Boolean,
-        default:false
+    videos: [
+      {
+        url: String,
+        fileId: String,
+      },
+    ],
+
+    song: {
+      title: String,
+      artist: String,
+      audioUrl: String,
+      duration: Number,
+      startTime: {
+        type: Number,
+        default: 0,
+      },
     },
-    isDeleted:{
-        type:Boolean,
-        default:false
-    }
-},{timestamps:true})
 
-const postModel=mongoose.model("fullInstagramPostModel",postSchema)
+    hashtags: [
+      {
+        type: String,
+        lowercase: true,
+        trim: true,
+      },
+    ],
 
-export default postModel
+    location: {
+      name: String,
+      latitude: Number,
+      longitude: Number,
+    },
+
+    likesCount: {
+      type: Number,
+      default: 0,
+    },
+
+    commentsCount: {
+      type: Number,
+      default: 0,
+    },
+
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const postModel = mongoose.model("FullInstagramPostM<odel", postSchema);
+
+export default postModel;
