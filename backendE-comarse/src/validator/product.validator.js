@@ -25,13 +25,13 @@ export const createProductValidator = [
       "description must be at least minimum 2 character and maximum 500 character",
     ),
 
-  body("price.amount")
+  body("prices.amount")
     .exists()
     .withMessage("amount is required")
     .isFloat({ min: 0 })
     .withMessage("amount must be a positive number"),
 
-  body("price.currency")
+  body("prices.currency")
     .exists()
     .withMessage("currency is required")
     .bail()

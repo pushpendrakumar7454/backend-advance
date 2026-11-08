@@ -12,6 +12,7 @@ export const createProductController=async(req,res)=>{
                 buffer:file.buffer,
                 fileName:file.originalname
             })
+             return res.url
         })
     )
 
@@ -20,12 +21,12 @@ export const createProductController=async(req,res)=>{
         description,
         brand,
         category,
-        price:{
-            amount:req.price.amount,
-            currency:req.price.currency
+        prices:{
+            amount:req.body.prices.amount,
+            currency:req.body.prices.currency
         },
         sizes:req.body.sizes,
-        image:fileUrl
+        images:fileUrl
     })
 
     return res.status(201).json({
@@ -34,8 +35,9 @@ export const createProductController=async(req,res)=>{
     })
         
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
-            messages:"invalid request"
+            messages:"internal server error"
         })
     }
 }
