@@ -6,6 +6,9 @@ import { createPostValidator } from '../validator/post.validator.js'
 
 const router=Router()
 
-router.post("/",authenticate,upload.array("images"),createPostValidator,createPostController)
+router.post("/create",authenticate,upload.fields([
+        { name: "images", maxCount: 10 },
+        { name: "videos", maxCount: 5 }
+    ]),createPostValidator,createPostController)
 
 export default router

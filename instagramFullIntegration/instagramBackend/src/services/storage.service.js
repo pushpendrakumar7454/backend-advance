@@ -1,16 +1,18 @@
-import imageKit, { toFile } from '@imagekit/nodejs'
-import config from '../app/config/config.js'
 
-const client=new imageKit({
-    privateKey:config.IMAGEKIT_PRIVATE_KEY
-})
+import ImageKit, { toFile } from "@imagekit/nodejs";
+import config from "../app/config/config.js";
 
-export const uploadFile=async()=>{
-    const response=await client.files.upload({
-        file:await toFile(buffer),
-        fileName:fileName,
-        folder:"instgram"
-    })
+const client = new ImageKit({
+    privateKey: config.IMAGEKIT_PRIVATE_KEY
+});
 
-    return response
-}
+export const uploadFile = async (buffer, fileName) => {
+
+    const response = await client.files.upload({
+        file: await toFile(buffer, fileName),
+        fileName: fileName,
+        folder: "instagram"
+    });
+
+    return response;
+};
