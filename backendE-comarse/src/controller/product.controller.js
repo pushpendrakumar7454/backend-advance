@@ -41,3 +41,72 @@ export const createProductController=async(req,res)=>{
         })
     }
 }
+
+export const updateProductController=async(req,res)=>{
+    try {
+        
+    const {id}=req.params
+    const {title,description,brand,prices,sizes,category}=req.body
+
+    const updateData={}
+
+
+    if(title!=="undefined"){
+        updateData.title=title
+    }
+
+    if(description!=="undefined"){
+        updateData.description=description
+    }
+
+    if(brand!=="undefined"){
+        updateData.brand=brand
+    }
+
+    if(category!=="undefined"){
+        updateData.category=category
+    }
+
+    if(prices!=="undefined"){
+        updateData.prices=prices
+    }
+
+    if(sizes!=="undefined"){
+        updateData.sizes=sizes
+    }
+
+    if(req.files && req.files.length>0){
+        const fileUrl=await Promise.all(
+            req.files.map(async(file)=>{
+                const res=await uploadFile({
+                    buffer:file.buffer,
+                    fileName:file.originalname
+                })
+                return res.url
+            })
+
+        )
+
+        updateData.images=fileUrl
+    }
+
+    const products=await productModel.findByIdAndUpdate(id,updateData,{new:true})
+
+    if(!products){
+        return res.status(404).json({
+            message:"product not found"
+        })
+    }
+
+
+    return res.status(200).json({
+        message:"product update succefully",
+        data:products
+       })
+
+    } catch (error) {
+        return res.status(500).json({
+            message:"internal server error"
+        })
+    }
+}
