@@ -37,3 +37,13 @@ export const authenticate = async (req, res, next) => {
         });
     }
 };
+
+
+export const selllerAuthencticate=async(req,res,next)=>{
+    if(req.user.role!=="seller"){
+        return res.status(403).json({
+            messages:"user is not unauthorized to do this action"
+        })
+    }
+    next()
+}
