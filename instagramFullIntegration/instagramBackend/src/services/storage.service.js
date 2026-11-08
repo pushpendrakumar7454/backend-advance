@@ -1,7 +1,8 @@
 import imageKit, { toFile } from '@imagekit/nodejs'
+import config from '../app/config/config.js'
 
 const client=new imageKit({
-    privateKey
+    privateKey:config.IMAGEKIT_PRIVATE_KEY
 })
 
 export const uploadFile=async()=>{
