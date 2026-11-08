@@ -1,112 +1,121 @@
 import productModel from "../modules/product.module.js"
 import { uploadFile } from "../services/storage.services.js"
 
-export const createProductController=async(req,res)=>{
+export const createProductController = async (req, res) => {
     try {
-   
-        const {title,description,brand,category}=req.body
 
-    const fileUrl=await Promise.all(
-        req.files.map(async(file)=>{
-            const res=await uploadFile({
-                buffer:file.buffer,
-                fileName:file.originalname
+        const { title, description, brand, category } = req.body
+
+        const fileUrl = await Promise.all(
+            (req.files || []).map(async (file) => {
+                const res = await uploadFile({
+                    buffer: file.buffer,
+                    fileName: file.originalname
+                })
+
+                return res.url
             })
-             return res.url
+        )
+
+        const product = await productModel.create({
+            title,
+            description,
+            brand,
+            category,
+            prices: {
+                amount: req.body.prices.amount,
+                currency: req.body.prices.currency
+            },
+            sizes: req.body.sizes,
+            images: fileUrl
         })
-    )
 
-    const product=await productModel.create({
-        title,
-        description,
-        brand,
-        category,
-        prices:{
-            amount:req.body.prices.amount,
-            currency:req.body.prices.currency
-        },
-        sizes:req.body.sizes,
-        images:fileUrl
-    })
+        return res.status(201).json({
+            message: "product created successfully",
+            data: product
+        })
 
-    return res.status(201).json({
-        messages:"product created succefully",
-        data:product
-    })
-        
     } catch (error) {
         console.log(error)
+
         return res.status(500).json({
-            messages:"internal server error"
+            message: "internal server error"
         })
     }
 }
 
-export const updateProductController=async(req,res)=>{
+
+export const updateProductController = async (req, res) => {
     try {
-        
-    const {id}=req.params
-    const {title,description,brand,prices,sizes,category}=req.body
 
-    const updateData={}
+        const { id } = req.params
 
+        const { title, description, brand, prices, sizes, category } = req.body
 
-    if(title!=="undefined"){
-        updateData.title=title
-    }
+        const updateData = {}
 
-    if(description!=="undefined"){
-        updateData.description=description
-    }
+        if (title !== undefined) {
+            updateData.title = title
+        }
 
-    if(brand!=="undefined"){
-        updateData.brand=brand
-    }
+        if (description !== undefined) {
+            updateData.description = description
+        }
 
-    if(category!=="undefined"){
-        updateData.category=category
-    }
+        if (brand !== undefined) {
+            updateData.brand = brand
+        }
 
-    if(prices!=="undefined"){
-        updateData.prices=prices
-    }
+        if (category !== undefined) {
+            updateData.category = category
+        }
 
-    if(sizes!=="undefined"){
-        updateData.sizes=sizes
-    }
+        if (prices !== undefined) {
+            updateData.prices = prices
+        }
 
-    if(req.files && req.files.length>0){
-        const fileUrl=await Promise.all(
-            req.files.map(async(file)=>{
-                const res=await uploadFile({
-                    buffer:file.buffer,
-                    fileName:file.originalname
+        if (sizes !== undefined) {
+            updateData.sizes = sizes
+        }
+
+        if (req.files && req.files.length > 0) {
+
+            const fileUrl = await Promise.all(
+                req.files.map(async (file) => {
+                    const res = await uploadFile({
+                        buffer: file.buffer,
+                        fileName: file.originalname
+                    })
+
+                    return res.url
                 })
-                return res.url
-            })
+            )
 
+            updateData.images = fileUrl
+        }
+
+        const products = await productModel.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
         )
 
-        updateData.images=fileUrl
-    }
+        if (!products) {
+            return res.status(404).json({
+                message: "product not found"
+            })
+        }
 
-    const products=await productModel.findByIdAndUpdate(id,updateData,{new:true})
-
-    if(!products){
-        return res.status(404).json({
-            message:"product not found"
+        return res.status(200).json({
+            message: "product updated successfully",
+            data: products
         })
-    }
-
-
-    return res.status(200).json({
-        message:"product update succefully",
-        data:products
-       })
 
     } catch (error) {
+        console.log(error)
+
         return res.status(500).json({
-            message:"internal server error"
+            message: "internal server error"
         })
     }
 }

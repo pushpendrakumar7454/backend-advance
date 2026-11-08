@@ -47,3 +47,23 @@ export const selllerAuthencticate=async(req,res,next)=>{
     }
     next()
 }
+
+export const parseProductData = (req, res, next) => {
+    try {
+
+        if (req.body.prices) {
+            req.body.prices = JSON.parse(req.body.prices)
+        }
+
+        if (req.body.sizes) {
+            req.body.sizes = JSON.parse(req.body.sizes)
+        }
+
+        next()
+
+    } catch (error) {
+        return res.status(400).json({
+            message: "Invalid JSON format"
+        })
+    }
+}
