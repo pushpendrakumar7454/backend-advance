@@ -129,70 +129,85 @@ export const likeCommentController = async (req, res) => {
   }
 };
 
+export const updateCommentController = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.user.userId;
+    const { comment } = req.body;
 
-export const updateCommentController=async(req,res)=>{
-    try {
-        
-        const { commentId } = req.params;
-        const userId = req.user.userId;
-        const { comment } = req.body;
-
-        const updatedComment=await commentModel.findOneAndUpdate({_id:commentId,user:userId},{comment},{new:true,runValidators:true})
-
-
-          if (!updatedComment) {
-            return res.status(404).json({
-                message: "Comment not found"
-            });
-        }
-
-         return res.status(200).json({
-            message: "Comment updated successfully",
-            updatedComment
-        });
-
-
-
-    } catch (error) {
-        return res.status(500).json({
-            message:"internal server error"
-        })
+    if (!comment) {
+      return res.status(400).json({
+        message: "Comment is required",
+      });
     }
-}
 
+    const updatedComment = await commentModel.findOneAndUpdate(
+      {
+        _id: commentId,
+        user: userId,
+      },
+      {
+        $set: {
+          comment: comment,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
-export const replyCommentController=async(req,res)=>{
-    try {
-        
-        const { commentId } = req.params;
-        const userId = req.user.userId;
-        const { comment } = req.body;
-
-        const parentComment=await commentModel.findById(commentId)
-
-          if (!parentComment) {
-            return res.status(404).json({
-                message: "Parent comment not found"
-            });
-        }
-
-        const reply=await commentModel.create({
-            user: userId,
-            post: parentComment.post,
-            comment,
-            parentComment: commentId
-        })
-
-        await postModel.findByIdAndUpdate(parentComment.post,{$inc:{commentsCount:1}})
-        
-           return res.status(201).json({
-            message: "Reply added successfully",
-            reply
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            message:"internal server error"
-        })
+    if (!updatedComment) {
+      return res.status(404).json({
+        message: "Comment not found or you are not authorized",
+      });
     }
-}
+
+    return res.status(200).json({
+      message: "Comment updated successfully",
+      updatedComment,
+    });
+  } catch (error) {
+    console.log("Update Comment Error:", error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const replyCommentController = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.user.userId;
+    const { replyComment } = req.body;
+
+    const parentComment = await commentModel.findById(commentId);
+
+    if (!parentComment) {
+      return res.status(404).json({
+        message: "Parent comment not found",
+      });
+    }
+
+    const reply = await commentModel.create({
+      user: userId,
+      post: parentComment.post,
+      replyComment,
+      parentComment: commentId,
+    });
+
+    await postModel.findByIdAndUpdate(parentComment.post, {
+      $inc: { commentsCount: 1 },
+    });
+
+    return res.status(201).json({
+      message: "Reply added successfully",
+      reply,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "internal server error",
+    });
+  }
+};
