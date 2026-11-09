@@ -5,7 +5,7 @@ import { createCommentController, deleteCommentController, findCommentController
 const router=Router()
 
 router.post("/comment/:postId",authenticate,createCommentController)
-router.get("/findcomment/:commentId",authenticate,findCommentController)
+router.get("/findcomment/:postId",authenticate,findCommentController)
 router.delete("/deletecomment/:commentId",authenticate,deleteCommentController)
 
 export default router
