@@ -2,12 +2,12 @@ import { body, validationResult } from "express-validator";
 
 export const createStoryValidator = [
   body("mediaType")
-    .exists()
-    .withMessage("media type is required")
-    .bail()
-    .isIn(["videos", "images"])
+    .trim()
+    .toLowerCase()
+    .isIn(["image", "video"])
     .withMessage("Media type must be image or video"),
 
+  ,
   body("music.title").optional().isString().withMessage("title must be string"),
 
   body("music.artist")

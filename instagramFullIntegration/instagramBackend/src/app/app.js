@@ -5,6 +5,7 @@ import postRouter from '../router/post.router.js'
 import likeRouter from '../router/like.router.js'
 import commentRouter from '../router/comment.router.js'
 import followRouter from '../router/follow.router.js'
+import storyRouter from '../router/story.router.js'
 
 const app = express()
 
@@ -17,5 +18,6 @@ app.use("/api/post",postRouter)
 app.use("/api/post",likeRouter)
 app.use("/api/post",commentRouter)
 app.use("/api",followRouter)
+app.use("/api/story",storyRouter)
 
 export default app
