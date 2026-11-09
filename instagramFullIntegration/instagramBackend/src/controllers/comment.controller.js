@@ -159,3 +159,40 @@ export const updateCommentController=async(req,res)=>{
         })
     }
 }
+
+
+export const replyCommentController=async(req,res)=>{
+    try {
+        
+        const { commentId } = req.params;
+        const userId = req.user.userId;
+        const { comment } = req.body;
+
+        const parentComment=await commentModel.findById(commentId)
+
+          if (!parentComment) {
+            return res.status(404).json({
+                message: "Parent comment not found"
+            });
+        }
+
+        const reply=await commentModel.create({
+            user: userId,
+            post: parentComment.post,
+            comment,
+            parentComment: commentId
+        })
+
+        await postModel.findByIdAndUpdate(parentComment.post,{$inc:{commentsCount:1}})
+        
+           return res.status(201).json({
+            message: "Reply added successfully",
+            reply
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message:"internal server error"
+        })
+    }
+}
