@@ -7,6 +7,7 @@ import { followUserController, unfollowUserController } from '../controllers/fol
 const router=Router()
 
 router.post("/follow/:userId",authenticate,followUserValidator,followUserController)
-router.delete("unfollow/:userId",authenticate,unfollowUserValidator,unfollowUserController)
+router.delete("/unfollow/:userId",authenticate, unfollowUserValidator, unfollowUserController);
+
 
 export default router

@@ -69,3 +69,43 @@ export const unfollowUserController=async(req,res)=>{
     }
 
 }
+
+export const getFollowersController=async(req,res)=>{
+    try {
+        
+        const {userId}=req.params
+
+        const followers=await followModel.find({following:userId}).populate("follower", "username profileImage")
+
+         return res.status(200).json({
+            message: "Followers fetched successfully",
+            followers
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message:"internal server error"
+        })
+    }
+}
+
+export const getFollowingController = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const following = await followModel.find({
+            follower: userId
+        }).populate("following", "username profileImage");
+
+        return res.status(200).json({
+            message: "Following fetched successfully",
+            following
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+};
