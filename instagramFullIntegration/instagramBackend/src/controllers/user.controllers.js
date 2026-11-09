@@ -154,6 +154,8 @@ export const authRefreshController = async (req, res) => {
   }
 };
 
+
+
 export const authMeController = async (req, res) => {
   try {
     const { userId } = req.user;
@@ -220,4 +222,21 @@ export const authLogoutController=async(req,res)=>{
             message:"internal server error"
         })
     }
+}
+
+export const allUserController=async(req,res)=>{
+  try {
+    
+    const user=await userModel.find()
+
+    return res.status(200).json({
+      message:"fetched all user successfully",
+      user
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      message:"internal server error"
+    })
+  }
 }
