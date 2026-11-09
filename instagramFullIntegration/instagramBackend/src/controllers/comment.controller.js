@@ -58,3 +58,37 @@ export const findCommentController=async(req,res)=>{
         })
     }
 }
+
+
+export const deleteCommentController = async (req, res) => {
+    try {
+        const { commentId } = req.params;
+        const userId = req.user.userId;
+
+        const comment = await commentModel.findOneAndDelete({
+            _id: commentId,
+            user: userId
+        });
+
+        if (!comment) {
+            return res.status(404).json({
+                message: "Comment not found"
+            });
+        }
+
+        await postModel.findByIdAndUpdate(comment.post, {
+            $inc: { commentsCount: -1 }
+        });
+
+        return res.status(200).json({
+            message: "Comment deleted successfully"
+        });
+
+    } catch (error) {
+        console.log("Delete Comment Error:", error);
+
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+};
