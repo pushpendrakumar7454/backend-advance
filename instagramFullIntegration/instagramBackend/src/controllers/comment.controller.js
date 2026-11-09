@@ -137,7 +137,7 @@ export const updateCommentController=async(req,res)=>{
         const userId = req.user.userId;
         const { comment } = req.body;
 
-        const updateComment=await commentModel.findOneAndUpdate({_id:commentId,user:userId},{comment},{new:true,runValidators:true})
+        const updatedComment=await commentModel.findOneAndUpdate({_id:commentId,user:userId},{comment},{new:true,runValidators:true})
 
 
           if (!updatedComment) {
