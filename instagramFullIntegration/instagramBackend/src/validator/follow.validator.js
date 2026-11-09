@@ -1,4 +1,4 @@
-import  {body, param, validationResult } from 'express-validator;
+import  {body, param, validationResult } from 'express-validator';
 
 
 export const followUserValidator =[
