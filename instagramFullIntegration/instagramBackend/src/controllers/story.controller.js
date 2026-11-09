@@ -175,3 +175,43 @@ export const viewStoryController = async (req, res) => {
   }
 };
 
+export const getStoryViewersController=async(req,res)=>{
+  try {
+     
+    const { storyId } = req.params;
+    const userId = req.user.userId;
+
+    const story=await storyModel.findById(storyId)
+
+    if(!story){
+      return res.status(404).json({
+        message:"story not found"
+      })
+    }
+
+    if(story.user.toString()!==userId.toString()){
+       return res.status(403).json({
+        message: "You are not allowed to see story viewers"
+      });
+    }
+
+    const viewers=await storyModel.populate(
+      story,
+      {
+        path:"viewers",
+        select:"username profileImage"
+      }
+    )
+
+    return res.status(200).json({
+      message: "Story viewers fetched successfully",
+      totalViewers: viewers.viewers.length,
+      viewers: viewers.viewers
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      message:"internal server error"
+    })
+  }
+}
