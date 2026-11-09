@@ -1,11 +1,11 @@
 import {Router} from 'express'
 import {authenticate} from '../middleware/user.middleware.js'
-import { createCommentController, deleteCommentConteroller, findCommentController } from '../controllers/comment.controller.js'
+import { createCommentController, deleteCommentController, findCommentController } from '../controllers/comment.controller.js'
 
 const router=Router()
 
 router.post("/comment/:postId",authenticate,createCommentController)
-router.get("/findcomment/:postId",authenticate,findCommentController)
-router.delete("/deletecomment/:postId",authenticate,deleteCommentConteroller)
+router.get("/findcomment/:commentId",authenticate,findCommentController)
+router.delete("/deletecomment/:commentId",authenticate,deleteCommentController)
 
 export default router
