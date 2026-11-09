@@ -215,3 +215,41 @@ export const getStoryViewersController=async(req,res)=>{
     })
   }
 }
+
+
+export const deleteStoryController=async(req,res)=>{
+  try {
+     
+    const { storyId } = req.params;
+    const userId = req.user.userId;
+
+   const story = await storyModel.findById(storyId);
+
+   if(!story){
+    return res.status(404).json({
+      message:"internal server error"
+    })
+   }
+
+
+   //check the story is owner or not is current user
+  
+   if(story.user.toString()!==userId.toString()){
+        return res.status(403).json({
+        message: "You are not allowed to delete this story"
+      });
+   }
+
+   await storyModel.findByIdAndDelete(storyId)
+
+  return res.status(200).json({
+      message: "Story deleted successfully"
+    });
+
+
+  } catch (error) {
+    return res.status(500).json({
+      message:"internal server error"
+    })
+  }
+}
