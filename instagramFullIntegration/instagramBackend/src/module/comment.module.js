@@ -12,7 +12,7 @@ const commentSchema = new mongoose.Schema(
       ref: "FullInstagramPostModel",
       required: true,
     },
-    text: {
+    comment: {
       type: String,
       required: true,
     },
