@@ -125,3 +125,43 @@ export const getUserStoriesController = async (req, res) => {
 };
 
 
+export const viewStoryController=async(req,res)=>{
+  try {
+    
+   const { storyId } = req.params;
+   const userId = req.user.userId;
+
+  const story=await storyModel.findOneAndUpdate({_id:storyId,expiresAt:{$gt:new Date()},viewers:{$ne:userId}},{$addToSet:{viewers:userId}},{returnDocument: "after"})
+
+  if(!story){
+    const existingStory=await storyModel.findById(storyId)
+    if(!existingStory){
+      return res.status(404).json({
+        message:"story not found"
+      })
+    }
+
+    if(existingStory.expiresAt<=new Date()){
+      return res.status(400).json({
+        message:"story expire"
+      })
+    }
+
+    return res.status(200).json({
+      message:"you allredy viewed this story"
+    })
+  }
+
+    return res.status(200).json({
+      message: "Story viewed successfully",
+      story
+    });
+
+
+
+  } catch (error) {
+    return res.status(500).json({
+      message:"internal server error"
+    })
+  }
+}
