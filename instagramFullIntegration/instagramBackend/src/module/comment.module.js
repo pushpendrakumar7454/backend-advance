@@ -1,23 +1,25 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
-const commentSchema=new mongoose.Schema({
-    user:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"fullIntegretionInstagramusers",
-        required:true
+const commentSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "fullIntegretionInstagramusers",
+      required: true,
     },
-    post:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"FullInstagramPostM<odel",
-        required:true
-    }
-    
-},{timestamps:true})
+    post: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "FullInstagramPostModel",
+      required: true,
+    },
+    text: {
+      type: String,
+      required: true,
+    },
+  },
+  { timestamps: true },
+);
 
+const commentModel = mongoose.model("FullInstagramCommentModel", commentSchema);
 
-commentSchema.index({user:1,post:1},{unique:true})
-
-const likeModel=mongoose.model("fullInstgramcommentModelMODELUSER",commentSchema)
-
-export default likeModel
-
+export default commentModel;
