@@ -6,7 +6,7 @@ export const createCommentController=async(req,res)=>{
         
       const {postId}=req.params
       const userId=req.user.userId
-      const {text}=req.body
+      const {comment}=req.body
 
       const post=await postModel.findOne({_id:postId,isDeleted:false})
 
@@ -16,21 +16,43 @@ export const createCommentController=async(req,res)=>{
         })
       }
 
-      const comment=await commentModel.create({
-       user:userId,post:postId,text
+      const comments=await commentModel.create({
+       user:userId,post:postId,comment
       })
 
       await postModel.findByIdAndUpdate(postId,{$inc:{commentsCount: 1}})
 
       return res.status(201).json({
         message:"comment added successfully",
-        comment
+        comments
       })
 
 
 
     } catch (error) {
         console.log(error)
+        return res.status(500).json({
+            message:"internal server error"
+        })
+    }
+}
+
+export const findCommentController=async(req,res)=>{
+    try {
+        
+    const {postId}=req.params
+
+    const post=await commentModel.find({
+        post:postId
+    }).populate("user","username profileImage")
+
+
+    return res.status(200).json({
+        message:"post fetched successfully",
+        post
+    })
+        
+    } catch (error) {
         return res.status(500).json({
             message:"internal server error"
         })
