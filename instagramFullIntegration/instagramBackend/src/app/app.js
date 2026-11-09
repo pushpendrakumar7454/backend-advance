@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser"
 import postRouter from '../router/post.router.js'
 import likeRouter from '../router/like.router.js'
 import commentRouter from '../router/comment.router.js'
+import followRouter from '../router/follow.router.js'
 
 const app = express()
 
@@ -15,5 +16,6 @@ app.use("/api/auth", userRouter)
 app.use("/api/post",postRouter)
 app.use("/api/post",likeRouter)
 app.use("/api/post",commentRouter)
+app.use("/api",followRouter)
 
 export default app
