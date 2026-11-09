@@ -1,64 +1,101 @@
+import upload from "../app/config/multer.js";
+import followModel from "../module/follow.module.js";
 import storyModel from "../module/story.module.js";
 import { uploadFile } from "../services/storage.service.js";
 
 
-
-
-export const createStoryController = async (req, res) => {
+export const createStoryController=async(req,res)=>{
   try {
-    const userId = req.user.userId;
+    
+   const userId=req.user.userId
+   const {mediaType}=req.body
 
-    const { mediaType } = req.body;
+   const mediaFile=req.files?.media?.[0]
+   const musicFile=req.files?.music?.[0]
 
-    const mediaFile = req.files?.media?.[0];
-    const musicFile = req.files?.music?.[0];
+   if(!mediaFile){
+    return res.status(400).json({
+       message: "Story photo or video is required"
+    })
+   }
 
-    if (!mediaFile) {
-      return res.status(400).json({
-        message: "Story photo or video is required"
-      });
-    }
+  if(!["image","video"].includes(mediaType)){
+    return res.status(400).json({
+      message:"Media type must be image or video"
+    })
+  }
 
-    if (!["image", "video"].includes(mediaType)) {
-      return res.status(400).json({
-        message: "Media type must be image or video"
-      });
-    }
+  //promise.all
 
-    // Promise.all se parallel upload
-    const [mediaResponse, musicResponse] = await Promise.all([
-      uploadFile(mediaFile.buffer, mediaFile.originalname),
+   const [mediaResponse,musicResponse]=await Promise.all([
+    uploadFile(mediaFile.buffer,mediaFile.originalname),
+     
+    musicFile?uploadFile(musicFile.buffer,musicFile.originalname):Promise.resolve(null)
+   ]);
 
-      musicFile
-        ? uploadFile(musicFile.buffer, musicFile.originalname)
-        : Promise.resolve(null)
-    ]);
 
-    const story = await storyModel.create({
-      user: userId,
-      media: mediaResponse.url,
-      mediaType,
-
-      music: musicResponse
-        ? {
+   const story=await storyModel.create({
+    user:userId,
+    media:mediaResponse.url,
+    mediaType,
+    music:musicResponse?{
             url: musicResponse.url,
             title: req.body.musicTitle || null,
             artist: req.body.musicArtist || null,
             startTime: Number(req.body.startTime) || 0,
             duration: Number(req.body.duration) || 15
-          }
-        : undefined
+          }:undefined
+   })
+   
+   return res.status(201).json({
+    message:"story created successfully",
+    story
+   })
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+      message:"internal server error"
+    })
+  }
+}
+
+
+
+
+export const getAllStoriesController = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const following = await followModel.find({
+      follower: userId
     });
 
-    return res.status(201).json({
-      message: "Story created successfully",
-      story
+    const userIds = [userId];
+
+    for (let i = 0; i < following.length; i++) {
+      userIds.push(following[i].following);
+    }
+
+    const stories = await storyModel.find({
+      user: { $in: userIds }
+    }).populate("user", "username profileImage");
+
+    return res.status(200).json({
+      message: "All stories fetched successfully",
+      totalStories: stories.length,
+      stories
     });
 
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
-      message: "Error creating story",
+      message: "Error fetching stories",
       error: error.message
     });
   }
 };
+
+
+
