@@ -1,7 +1,7 @@
 import {Router} from 'express'
 import { authenticate } from '../middleware/user.middleware.js'
 import { followUserValidator,getFollowValidator,unfollowUserValidator } from '../validator/follow.validator.js'
-import { followUserController, getFollowersController, getFollowingController, unfollowUserController } from '../controllers/follow.controller.js'
+import { followUserController, getFollowersController,getFollowingController, unfollowUserController } from '../controllers/follow.controller.js'
 
 
 const router=Router()
