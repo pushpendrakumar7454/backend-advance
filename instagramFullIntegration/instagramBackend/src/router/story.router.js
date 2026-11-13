@@ -1,7 +1,7 @@
 import {Router} from 'express'
 import {authenticate} from '../middleware/user.middleware.js'
 import upload from '../app/config/multer.js'
-import { createStoryController,getAllStoriesController, getUserStoriesController, viewStoryController,getStoryViewersController ,deleteStoryController} from '../controllers/story.controller.js'
+import { createStoryController,getAllStoriesController,getUserStoriesController, viewStoryController,getStoryViewersController ,deleteStoryController} from '../controllers/story.controller.js'
 import {createStoryValidator} from '../validator/story.validator.js'
 
 const router=Router()
